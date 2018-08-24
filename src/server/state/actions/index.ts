@@ -1,1 +1,1 @@
-export * from './bomberman.actions';
+export * from './bomberman.action';
