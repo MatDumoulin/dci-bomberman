@@ -1,6 +1,8 @@
 import * as fromState from "../state";
 import * as fromServer from 'dci-game-server';
 import { Unsubscribe } from "redux";
+import { createStore } from "../state/store-creater";
+import { PlayerActionWrapper, PlayerId } from "../models";
 const gameloop = require('node-gameloop');
 
 /**
@@ -16,11 +18,10 @@ export class GameManager {
 
     constructor() {
         // Initializes the store
-        this._gameStateManager = new fromServer.GameState<fromState.GameState>(fromState.gameStateReducer);
+        this._gameStateManager = createStore();
         // And retrieves the state whenever it changes.
         this._unsubscribeFromStore = this._gameStateManager.subscribe(() => {
             this._currentGameState = this._gameStateManager.getState();
-            console.log(this._currentGameState);
         });
 
         this._currentGameState = this._gameStateManager.getState();
@@ -29,6 +30,9 @@ export class GameManager {
     cleanUpResources(): void {
         this._unsubscribeFromStore();
     }
+
+
+
 
 
     /**
@@ -40,6 +44,7 @@ export class GameManager {
         this._isGameRunning = true;
 
         this._gameLoopId = gameloop.setGameLoop( () => this.gameIteration(), 1000/this.FPS);
+        this._gameStateManager.dispatch(fromState.StartGame.create());
     }
 
     /**
@@ -74,8 +79,17 @@ export class GameManager {
         }
     }
 
+    addPlayer(playerId: PlayerId) {
+        this._gameStateManager.dispatch(fromState.JoinGame.create(playerId));
+    }
+
+    updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
+        console.log("Player action changed: ", playerActionWrapper);
+        this._gameStateManager.dispatch(fromState.UpdateMouvement.create(playerActionWrapper));
+    }
+
     /**
-     * This function is called at each game loop iteration 
+     * This function is called at each game loop iteration
      */
     private gameIteration() {
         if(this._currentGameState.paused) {

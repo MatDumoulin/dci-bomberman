@@ -13,6 +13,7 @@ export class CliManager {
 
         console.log("Welcome to the dci-bomberman game.");
         console.log("Enter 'pause' to pause the game.");
+        console.log("Enter 'start' to start the game. If there are 4 player, the game will automatically start.");
 
         this._commandLine.on("line", (line) => {
             if(line === "pause") {
@@ -22,6 +23,9 @@ export class CliManager {
             else if(line === "resume") {
                 gameManager.resumeGame();
                 console.log("Game is resumed.");
+            }
+            else if(line === "start") {
+                gameManager.startGame();
             }
         });
     }

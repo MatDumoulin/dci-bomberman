@@ -16,28 +16,27 @@ const io = socketIo.default(http);
 const args = minimist(process.argv.slice(2)); // The first 2 arguments are useless.
 const PORT = args.port || 3000;
 
-const socketCommunication = new BombermanSocketServer(io);
-
-socketCommunication.start();
+const gameManager = new GameManager();
+BombermanSocketServer.init(io, gameManager);
+BombermanSocketServer.getInstance().start();
+const cli = new CliManager(gameManager);
 
 http.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-const gameManager = new GameManager();
-const cli = new CliManager(gameManager);
-gameManager.startGame();
 
-setTimeout( () => gameManager.stopGame(), 3000);
+// setTimeout( () => gameManager.stopGame(), 3000);
 
 
 
 // Cleaning up all the resources used by the server.
 function cleanUpResources() {
-    console.log("Cleaning up resources."); 
+    console.log("Cleaning up resources...");
     gameManager.cleanUpResources();
     cli.cleanUpResources();
-    console.log("Closing server."); 
+    BombermanSocketServer.getInstance().end();
+    console.log("Server is closed.");
 }
 
 //do something when app is closing
