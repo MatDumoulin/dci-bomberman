@@ -10,7 +10,7 @@ export interface GameState {
     bombs: Bomb[];
     // collectibles: Collectible[];
     paused: boolean;
-    isOver: ConstrainBoolean;
+    isOver: boolean;
     hasStarted: boolean;
 }
 
