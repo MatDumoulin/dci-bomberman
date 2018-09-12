@@ -1,4 +1,4 @@
-import { ObjectType, MapDescriptor } from "../../models";
+import { ObjectType, MapDescriptor, Point } from "../../models";
 
 const Walkable = ObjectType.Walkable; // To make it easier to read.
 const Wall = ObjectType.Wall;
@@ -23,5 +23,6 @@ export const defaultMap: MapDescriptor = {
         [BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem],
         [Walkable, Wall, BreakableItem, Wall, BreakableItem, Wall, BreakableItem, Wall, BreakableItem, Wall, BreakableItem, Wall, BreakableItem, Wall, Walkable],
         [Walkable, Walkable, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, BreakableItem, Walkable, Walkable],
-    ]
+    ],
+    spawnPositions: [new Point(0, 0), new Point(14, 0), new Point(0, 14), new Point(14, 14)]
 }

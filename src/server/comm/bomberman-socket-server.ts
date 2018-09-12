@@ -41,10 +41,15 @@ export class BombermanSocketServer implements SocketServer {
             console.log("Welcome Client " + socket.id);
 
             socket.on('joinGame', (playerId: PlayerId) => {
-                console.log(`Socket id ${socket.id} is now linked to team ${playerId}`)
+                console.log(`Socket id ${socket.id} is now linked to team ${playerId}`);
                 console.log("Team " + playerId + " has join the game.");
                 this._playerSocketManager.set(playerId, socket);
                 this._gameManager.addPlayer(playerId);
+            });
+
+            socket.on('viewGame', (playerId: PlayerId) => {
+                console.log(`Socket id ${socket.id} is viewing the game.`);
+                socket.emit("viewingGame", this._gameManager.getGameState());
             });
 
             socket.on('leaveGame', () => {

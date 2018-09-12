@@ -6,7 +6,8 @@ export interface MapDescriptor {
     height: number;
     width: number;
     /** The descriptor for each tile */
-    tiles: ObjectType[][]
+    tiles: ObjectType[][],
+    spawnPositions: Point[]
 }
 
 
@@ -14,6 +15,7 @@ export class GameMap {
     private _tiles: GameObject[][];
     private _tileWidth = 32; /** In pixels */
     private _tileHeight = 32; /** In pixels */
+    private _spawnPositions: Point[];
 
 
     getWidth(): number {
@@ -32,9 +34,13 @@ export class GameMap {
         return this._tiles.length;
     }
 
-    /** 
+    getSpawns(): Point[] {
+        return this._spawnPositions;
+    }
+
+    /**
      * Gets the object that is at the given tile.
-     * @returns The object at the given tile. Null if out of bound. 
+     * @returns The object at the given tile. Null if out of bound.
      * */
     get(row: number, col: number): GameObject {
         if(this.isOutOfBound(row, col)) {
@@ -63,7 +69,7 @@ export class GameMap {
         }
 
         this._tiles = new Array(descriptor.height);
-        
+        // Initializing the map.
         for(let row = 0; row < descriptor.height; ++row) {
             this._tiles[row] = new Array(descriptor.width);
 
@@ -73,14 +79,14 @@ export class GameMap {
                 let tile: GameObject;
 
                 switch(descriptor.tiles[row][col]) {
-                    case ObjectType.Walkable: 
-                        tile = new WalkableTerrain(tileCoords, this._tileWidth, this._tileHeight); 
+                    case ObjectType.Walkable:
+                        tile = new WalkableTerrain(tileCoords, this._tileWidth, this._tileHeight);
                         break;
-                    case ObjectType.Wall: 
-                        tile = new Wall(tileCoords, this._tileWidth, this._tileHeight); 
+                    case ObjectType.Wall:
+                        tile = new Wall(tileCoords, this._tileWidth, this._tileHeight);
                         break;
-                    case ObjectType.BreakableItem: 
-                        tile = new BreakableItem(tileCoords, this._tileWidth, this._tileHeight); 
+                    case ObjectType.BreakableItem:
+                        tile = new BreakableItem(tileCoords, this._tileWidth, this._tileHeight);
                         break;
                     default: throw new Error("Invalid value in descriptor.");
                 }
@@ -88,12 +94,15 @@ export class GameMap {
                 this._tiles[row][col] = tile;
             }
         }
+
+        // Initializing the spawns
+        this._spawnPositions = descriptor.spawnPositions;
     }
 
     /** Initializes the map with a blank state, which means that all cells are set to walkable. */
     init(width: number, height: number): void {
         this._tiles = new Array(height);
-        
+
         for(let row = 0; row < height; ++row) {
             this._tiles[row] = new Array(width);
 
@@ -103,6 +112,8 @@ export class GameMap {
                 this._tiles[row][col] = new WalkableTerrain(tileCoords, this._tileWidth, this._tileHeight);
             }
         }
+        // Initializing the 4 spawns
+        this._spawnPositions = [new Point(0, 0), new Point(width-1, 0), new Point(0, height-1), new Point(width-1, height-1)];
     }
 
     private isOutOfBound(row: number, col: number): boolean {

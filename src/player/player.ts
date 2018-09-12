@@ -1,7 +1,8 @@
 import { SocketClient } from './comm/socket-client';
 import { GameManager } from './core/game-manager';
+import { config } from './config';
 
-const serverUrl = "http://localhost:8000";
+const serverUrl = config.serverUrl;
 const gameManager = new GameManager();
 SocketClient.init(gameManager);
 SocketClient.getInstance().open(serverUrl);

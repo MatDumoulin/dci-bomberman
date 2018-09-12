@@ -35,6 +35,9 @@ export const defaultGameState: GameState = {
 export function gameStateReducer(state = defaultGameState, action: GameAction) {
     switch (action.type) {
         case fromActions.START_GAME: {
+            // Set the position of all players to their spawn.
+            // const players = setPlayersPositionToSpawn(state);
+
             return {
                 ...state,
                 hasStarted: true
@@ -54,10 +57,16 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
         }
         case fromActions.JOIN_GAME: {
             // First, we create a copy of the player map and add our player.
+            const playerId: PlayerId = action.payload;
+            const currentNumberOfPlayer = Object.keys(state.players).length + 1;
+            let newPlayer = new Player(playerId, currentNumberOfPlayer);
+            newPlayer = setPlayerPositionToSpawn(state, newPlayer);
+
             const updatedPlayers = {
                 ...state.players,
-                [action.payload]: new PlayerAction()
+                [playerId]: newPlayer
             };
+
             // Then, we reflect the changes to our state.
             return {
                 ...state,
@@ -66,10 +75,14 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
         }
         case fromActions.UPDATE_MOVEMENT: {
             // First, we create a copy of the player map and update our player.
+            let player = state.players[action.payload.playerId];
+
             const updatedPlayers = {
                 ...state.players,
-                [action.payload.playerId]: action.payload.actions
+                // For our player, replace its actions by the new actions.
+                [action.payload.playerId]: { ...player, actions: action.payload.actions }
             };
+
             // Then, we reflect the changes to our state.
             return {
                 ...state,
@@ -80,4 +93,54 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
         default:
             return state;
     }
+}
+
+/**
+ * Returns a copy of the players with their positions set to the
+ * spawning points of the map. This function is a pure function.
+ * @param state The current state of the game.
+ */
+function setPlayersPositionToSpawn(state: GameState): { [id: string]: Player } {
+    let players: { [id: string]: Player } = {};
+    let playerIds: PlayerId[] = Object.keys(state.players);
+    const spawns = state.gameMap.getSpawns();
+
+    // If there are more players than spawns, throw an error.
+    if(spawns.length < playerIds.length) {
+        throw new Error(`There are too many players for the map. The map allows ${spawns.length} but there are ${playerIds.length} players`);
+    }
+
+    for (let i = 0; i < playerIds.length; ++i) {
+        let player = state.players[playerIds[i]];
+        // Working with a copy of the spawn since it will become the new position of the player.
+        const spawn = Object.assign({}, spawns[i]);
+        // Setting the player's position to the spawn.
+        player = {...player, joinOrder: i, coordinates: spawn};
+        players[player.playerId] = player;
+    }
+
+    return players;
+}
+
+
+/**
+ * Returns a copy of the players with their positions set to the
+ * spawning points of the map. This function is a pure function.
+ * @param state The current state of the game.
+ */
+function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
+    const spawns = state.gameMap.getSpawns();
+
+    // If there are more players than spawns, throw an error.
+    if(spawns.length < player.joinOrder) {
+        throw new Error(`There are too many players for the map. The map allows ${spawns.length} but a player with joinOrder ${player.joinOrder} was able to join.`);
+    }
+
+    // Working with a copy of the spawn since it will become the new position of the player.
+    const spawn = Object.assign({}, spawns[player.joinOrder - 1]);
+    console.log("Spawn", spawn);
+    // Setting the player's position to the spawn.
+    const updatedPlayer = {...player, coordinates: spawn};
+
+    return updatedPlayer;
 }

@@ -88,6 +88,10 @@ export class GameManager {
         this._gameStateManager.dispatch(fromState.UpdateMouvement.create(playerActionWrapper));
     }
 
+    getGameState(): fromState.GameState {
+        return this._currentGameState;
+    }
+
     /**
      * This function is called at each game loop iteration
      */
