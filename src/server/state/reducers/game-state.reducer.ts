@@ -89,6 +89,22 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 players: updatedPlayers
             };
         }
+        case fromActions.UPDATE_ALL_POSITIONS: {
+            // First, we create a copy of the player map and update our players.
+
+            for ()
+            const updatedPlayers = {
+                ...state.players,
+                // For our player, replace its actions by the new actions.
+                [action.payload.playerId]: { ...player, actions: action.payload.actions }
+            };
+
+            // Then, we reflect the changes to our state.
+            return {
+                ...state,
+                players: updatedPlayers
+            };
+        }
 
         default:
             return state;
@@ -135,6 +151,40 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
     if(spawns.length < player.joinOrder) {
         throw new Error(`There are too many players for the map. The map allows ${spawns.length} but a player with joinOrder ${player.joinOrder} was able to join.`);
     }
+
+    // Working with a copy of the spawn since it will become the new position of the player.
+    const spawn = Object.assign({}, spawns[player.joinOrder - 1]);
+    console.log("Spawn", spawn);
+    // Setting the player's position to the spawn.
+    const updatedPlayer = {...player, coordinates: spawn};
+
+    return updatedPlayer;
+}
+
+
+/**
+ * Returns a copy of the players with their positions set to the
+ * spawning points of the map. This function is a pure function.
+ * @param state The current state of the game.
+ */
+function updatePlayerPosition(state: GameState, player: Player): Player {
+    const move = {x: 0, y: 0};
+    if(player.actions.move_up) {
+        move.y = -1;
+    }
+    else if(player.actions.move_down) {
+        move.y = 1;
+    }
+    else if(player.actions.move_left) {
+        move.x = -1;
+    }
+    else if(player.actions.move_right) {
+        move.y = 1;
+    }
+
+
+    const currentPositionOfPlayer = player.coordinates;
+
 
     // Working with a copy of the spawn since it will become the new position of the player.
     const spawn = Object.assign({}, spawns[player.joinOrder - 1]);

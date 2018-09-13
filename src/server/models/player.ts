@@ -8,6 +8,7 @@ export class Player extends GameObject {
     actions: PlayerAction;
     type = ObjectType.Player;
     joinOrder: number; // starts at 1.
+    speed = 1;
 
 
     constructor(playerId: PlayerId, joinOrder: number) {

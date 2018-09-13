@@ -19,6 +19,7 @@ export const RESUME_GAME = "[User] Wants to resume the game";
 export const GAME_RESUMED = "[User] Game is resumed";
 
 export const UPDATE_MOVEMENT = "[Player] Has changed the way he's moving";
+export const UPDATE_ALL_POSITIONS = "[Game] Updating the positions of the players.";
 
 // User has a bomb limit. This limit changes with collectible.
 export const PLANT_BOMB = "[Player] Wants to plant a bomb";
@@ -123,6 +124,14 @@ export class UpdateMouvement {
   }
 }
 
+export class UpdateAllPositions {
+  static create(): GameAction {
+    return {
+      type: UPDATE_ALL_POSITIONS
+    };
+  }
+}
+
 export class PlantBomb {
   static create(payload: PlayerId): GameAction {
     return {
@@ -188,6 +197,7 @@ export type BombermanAction =
   | ResumeGame
   | GameResumed
   | UpdateMouvement
+  | UpdateAllPositions
   | PlantBomb
   | BombPlanted
   | BombExploded

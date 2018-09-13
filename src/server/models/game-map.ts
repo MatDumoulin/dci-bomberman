@@ -50,6 +50,18 @@ export class GameMap {
         return this._tiles[row][col];
     }
 
+
+    getTileFromPixels(y: number, x: number): GameObject {
+        const tileRow = Math.floor(y / this._tileHeight);
+        const tileCol = Math.floor(x / this._tileWidth);
+
+        if(this.isOutOfBound(tileRow, tileCol)) {
+            return OUT_OF_BOUND;
+        }
+
+        return this._tiles[tileRow][tileCol];
+    }
+
     /**
      * Sets the tile at the given coords to the given value.
      * @param value The new value of the tile. Do not set it to null since it is considered to be out of bound.
