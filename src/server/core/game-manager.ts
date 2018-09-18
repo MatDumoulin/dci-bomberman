@@ -9,7 +9,7 @@ const gameloop = require('node-gameloop');
  * This class manages the game loop as well as to restart and pause the game.
  */
 export class GameManager {
-    private readonly FPS = 60;
+    private readonly FPS = 30;
     private _isGameRunning = false;
     private _gameLoopId: number = null;
     private _currentGameState: fromState.GameState;
@@ -100,6 +100,6 @@ export class GameManager {
             // Do nothing since the game is paused.
             return;
         }
-
+        this._gameStateManager.dispatch(fromState.UpdateAllPositions.create());
     }
 }

@@ -52,7 +52,6 @@ export class GameManager {
     }
 
     setGameState(gameState: GameState) {
-        console.log("New state:", gameState);
         this._currentGameState = gameState;
     }
 
@@ -94,12 +93,12 @@ export class GameManager {
         if(this._iterationCounter >= framesInASecond) {
             this._iterationCounter = 0;
             this.setRandomMoves()
-            // console.log(this._playerState.actions);
         }
     }
 
     private setRandomMoves(): void  {
         const randomNumber = Math.round(Math.random() * 5);
+        console.log(randomNumber);
 
         const moves: PlayerAction = {
             move_up: false,

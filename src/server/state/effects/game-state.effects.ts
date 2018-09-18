@@ -1,4 +1,4 @@
-import { ActionsObservable, combineEpics, ofType, StateObservable } from "redux-observable";
+import { ActionsObservable, combineEpics, ofType, StateObservable, Epic } from "redux-observable";
 import { tap, withLatestFrom, mapTo } from 'rxjs/operators';
 import { GameAction } from "dci-game-server";
 
@@ -22,7 +22,9 @@ const stateChangedEffect = (action$: ActionsObservable<GameAction>, state$: Stat
     ofType(
         fromActions.PAUSE_GAME,
         fromActions.RESUME_GAME,
+        fromActions.GAME_JOINED,
         fromActions.UPDATE_MOVEMENT,
+        fromActions.UPDATE_ALL_POSITIONS,
         fromActions.BOMB_PLANTED,
         fromActions.BOMB_EXPLODED,
         fromActions.PLAYER_DAMAGED,

@@ -5,7 +5,7 @@
   "main": "dist/server/server.js",
   "scripts": {
     "build": "rm -rf dist && tsc -w",
-    "server": "nodemon dist/server/server.js --port 8000",
+    "server": "nodemon dist/server/server.js --port 3000",
     "player": "nodemon dist/player/player.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

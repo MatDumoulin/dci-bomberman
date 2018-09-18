@@ -1,4 +1,4 @@
-import { Bomb, GameMap, Player, PlayerId, PlayerAction } from "../../models";
+import { Bomb, GameMap, Player, PlayerId, PlayerAction, Point, OUT_OF_BOUND, ObjectType } from "../../models";
 import * as MapDescriptor from "./default-map";
 import { GameAction } from "dci-game-server";
 import * as fromActions from "../actions";
@@ -91,13 +91,15 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
         }
         case fromActions.UPDATE_ALL_POSITIONS: {
             // First, we create a copy of the player map and update our players.
+            const updatedPlayers: { [id: string]: Player } = {};
+            const playerIds = Object.keys(state.players);
 
-            for ()
-            const updatedPlayers = {
-                ...state.players,
-                // For our player, replace its actions by the new actions.
-                [action.payload.playerId]: { ...player, actions: action.payload.actions }
-            };
+            for (const playerId of playerIds) {
+                const player = state.players[playerId];
+                const updatedPlayer = updatePlayerPosition(state, player);
+
+                updatedPlayers[playerId] = updatedPlayer;
+            }
 
             // Then, we reflect the changes to our state.
             return {
@@ -153,10 +155,10 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
     }
 
     // Working with a copy of the spawn since it will become the new position of the player.
-    const spawn = Object.assign({}, spawns[player.joinOrder - 1]);
-    console.log("Spawn", spawn);
+    const spawn = spawns[player.joinOrder - 1];
+    const spawnCopy = new Point(spawn.x, spawn.y);
     // Setting the player's position to the spawn.
-    const updatedPlayer = {...player, coordinates: spawn};
+    const updatedPlayer = {...player, coordinates: spawnCopy};
 
     return updatedPlayer;
 }
@@ -169,6 +171,7 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
  */
 function updatePlayerPosition(state: GameState, player: Player): Player {
     const move = {x: 0, y: 0};
+    // First, we convert the move to numeric values.
     if(player.actions.move_up) {
         move.y = -1;
     }
@@ -179,18 +182,60 @@ function updatePlayerPosition(state: GameState, player: Player): Player {
         move.x = -1;
     }
     else if(player.actions.move_right) {
-        move.y = 1;
+        move.x = 1;
+    }
+    // If the player is not moving, return the unchanged player.
+    else {
+        return player;
     }
 
+    // Then, we compute the new position of the player (if no collision).
+    let left = player.coordinates.x + player.speed * move.x;
+    let top = player.coordinates.y + player.speed * move.y;
+    const bottom = top + player.height - 1; // -1 because the pixels are 0 based.
+    const right = left + player.width - 1;
 
-    const currentPositionOfPlayer = player.coordinates;
+    // After that, we adjust the position to match the collisions.
+    const topLeftTile = state.gameMap.getTileFromPixels(top, left);
+    const topRightTile = state.gameMap.getTileFromPixels(top, right);
+    const bottomLeftTile = state.gameMap.getTileFromPixels(bottom, left);
+    const bottomRightTile = state.gameMap.getTileFromPixels(bottom, right);
 
+/*     if(newTile === OUT_OF_BOUND) {
+        if(newX < 0) {
+            newX = 0;
+        }
+        else {
+            const maxX = ( state.gameMap.getTileWidth() * state.gameMap.getWidth() ) - player.width;
+            if(newX > maxX) {
+                newX = maxX;
+            }
+        }
 
-    // Working with a copy of the spawn since it will become the new position of the player.
-    const spawn = Object.assign({}, spawns[player.joinOrder - 1]);
-    console.log("Spawn", spawn);
-    // Setting the player's position to the spawn.
-    const updatedPlayer = {...player, coordinates: spawn};
+        if(newY < 0) {
+            newY = 0;
+        }
+        else {
+            const maxY = ( state.gameMap.getTileHeight() * state.gameMap.getHeight() ) - player.height;
+            if(newY > maxY) {
+                newY = maxY;
+            }
+        }
+    }
+    else if(newTile.type !== ObjectType.Walkable) {
+        newX =
+    } */
+
+    if(topLeftTile === OUT_OF_BOUND || topLeftTile.type !== ObjectType.Walkable ||
+        topRightTile === OUT_OF_BOUND || topRightTile.type !== ObjectType.Walkable ||
+        bottomLeftTile === OUT_OF_BOUND || bottomLeftTile.type !== ObjectType.Walkable ||
+        bottomRightTile === OUT_OF_BOUND || bottomRightTile.type !== ObjectType.Walkable) {
+        left = player.coordinates.x;
+        top = player.coordinates.y;
+    }
+
+    const newPosition = new Point(left, top);
+    const updatedPlayer = {...player, coordinates: newPosition};
 
     return updatedPlayer;
 }

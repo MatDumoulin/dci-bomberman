@@ -17,7 +17,7 @@ export class GameMap {
     private _tileHeight = 32; /** In pixels */
     private _spawnPositions: Point[];
 
-
+    // Gets the number of tiles in the x axis of the map.
     getWidth(): number {
         if(!this._tiles || this._tiles.length === 0 || this._tiles[0].length === 0) {
             throw new Error("The map must be initialized before accessing its width.");
@@ -26,12 +26,21 @@ export class GameMap {
         return this._tiles[0].length;
     }
 
+    getTileWidth(): number {
+        return this._tileWidth;
+    }
+
+    // Gets the number of tiles in the y axis of the map.
     getHeight(): number {
         if(!this._tiles) {
             throw new Error("The map must be initialized before accessing its height.");
         }
 
         return this._tiles.length;
+    }
+
+    getTileHeight(): number {
+        return this._tileHeight;
     }
 
     getSpawns(): Point[] {
