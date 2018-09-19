@@ -17,7 +17,7 @@ export class Player extends GameObject {
         this.playerId = playerId;
         this.actions = new PlayerAction();
         this.joinOrder = joinOrder;
-        this.width = 32;
-        this.height = 32;
+        this.width = 30;
+        this.height = 30;
     }
 }
