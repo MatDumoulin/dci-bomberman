@@ -4,6 +4,7 @@ import { GameAction } from "dci-game-server";
 
 import * as fromActions from "../actions";
 import { BombermanSocketServer } from "../../comm";
+import { GameState } from "../reducers";
 
 const startGameEffect = (action$: ActionsObservable<GameAction>, state$: StateObservable<any>) => action$.pipe(
     ofType(fromActions.START_GAME),
@@ -16,6 +17,19 @@ const joinGameEffect = (action$: ActionsObservable<GameAction>) => action$.pipe(
     ofType(fromActions.JOIN_GAME),
     tap(action => BombermanSocketServer.getInstance().notifyGameJoined(action.payload)),
     mapTo(fromActions.GameJoined.create())
+);
+
+const plantBombEffect = (action$: ActionsObservable<GameAction>, state$: StateObservable<GameState>) => action$.pipe(
+    ofType(fromActions.PLANT_BOMB),
+    withLatestFrom(state$),
+    tap(([action, state]) =>  {
+        const playerId = action.payload;
+        const player = state.players[playerId];
+
+        console.log("This player wants to plant a bomb", player);
+
+        // BombermanSocketServer.getInstance().notifyGameJoined(action.payload);
+    })
 );
 
 const stateChangedEffect = (action$: ActionsObservable<GameAction>, state$: StateObservable<any>) => action$.pipe(
@@ -35,4 +49,4 @@ const stateChangedEffect = (action$: ActionsObservable<GameAction>, state$: Stat
     mapTo(fromActions.GameStateChanged.create())
 );
 
-export const effects = combineEpics(startGameEffect, joinGameEffect, stateChangedEffect);
+export const effects = combineEpics(startGameEffect, joinGameEffect, plantBombEffect, stateChangedEffect);

@@ -100,6 +100,21 @@ export class GameManager {
             // Do nothing since the game is paused.
             return;
         }
+
+        // Update the position of the players
         this._gameStateManager.dispatch(fromState.UpdateAllPositions.create());
+        // Then, check if the player wants to plant a bomb.
+        this.checkForPlayersToPlantBombs();
+    }
+
+    private checkForPlayersToPlantBombs() {
+        const playerIds = Object.keys(this._currentGameState.players);
+        for (const playerId of playerIds) {
+            const player = this._currentGameState.players[playerId];
+
+            if (player.actions.plant_bomb) {
+                this._gameStateManager.dispatch(fromState.PlantBomb.create(playerId));
+            }
+        }
     }
 }
