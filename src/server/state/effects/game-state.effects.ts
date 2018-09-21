@@ -1,10 +1,11 @@
 import { ActionsObservable, combineEpics, ofType, StateObservable, Epic } from "redux-observable";
-import { tap, withLatestFrom, mapTo } from 'rxjs/operators';
+import { tap, withLatestFrom, mapTo, map } from 'rxjs/operators';
 import { GameAction } from "dci-game-server";
 
 import * as fromActions from "../actions";
 import { BombermanSocketServer } from "../../comm";
 import { GameState } from "../reducers";
+import { Bomb, Point, OUT_OF_BOUND } from "../../models";
 
 const startGameEffect = (action$: ActionsObservable<GameAction>, state$: StateObservable<any>) => action$.pipe(
     ofType(fromActions.START_GAME),
@@ -22,13 +23,25 @@ const joinGameEffect = (action$: ActionsObservable<GameAction>) => action$.pipe(
 const plantBombEffect = (action$: ActionsObservable<GameAction>, state$: StateObservable<GameState>) => action$.pipe(
     ofType(fromActions.PLANT_BOMB),
     withLatestFrom(state$),
-    tap(([action, state]) =>  {
+    map(([action, state]) =>  {
         const playerId = action.payload;
         const player = state.players[playerId];
 
-        console.log("This player wants to plant a bomb", player);
+        // If the player has bombs left in his inventory
+        if(player.bombs.length < player.maxBombCount) {
+            const bomb = new Bomb(player.playerId);
+            // Getting the coordinates of the bomb.
+            const centerOfPlayer = new Point(player.coordinates.x + player.width/2, player.coordinates.y + player.height/2);
+            const tile = state.gameMap.getTileFromPixels(centerOfPlayer.y, centerOfPlayer.x);
 
-        // BombermanSocketServer.getInstance().notifyGameJoined(action.payload);
+            if(tile !== OUT_OF_BOUND) {
+                bomb.coordinates = new Point(tile.info.coordinates.x, tile.info.coordinates.y);
+                player.bombs.push(bomb);
+                return fromActions.BombPlanted.create(bomb);
+            }
+        }
+
+        return fromActions.CannotPlantBomb.create(playerId);
     })
 );
 

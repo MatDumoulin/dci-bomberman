@@ -23,6 +23,7 @@ export const UPDATE_ALL_POSITIONS = "[Game] Updating the positions of the player
 
 // User has a bomb limit. This limit changes with collectible.
 export const PLANT_BOMB = "[Player] Wants to plant a bomb";
+export const PLANT_BOMB_IMPOSSIBLE = "[Player] Cannot plant a bomb";
 export const BOMB_PLANTED = "[Player] Planted a bomb";
 export const BOMB_EXPLODED = "[Bomb] Has exploded";
 
@@ -136,6 +137,15 @@ export class PlantBomb {
   static create(payload: PlayerId): GameAction {
     return {
       type: PLANT_BOMB,
+      payload
+    };
+  }
+}
+
+export class CannotPlantBomb {
+  static create(payload: PlayerId): GameAction {
+    return {
+      type: PLANT_BOMB_IMPOSSIBLE,
       payload
     };
   }

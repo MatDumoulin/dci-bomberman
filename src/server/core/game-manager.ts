@@ -84,7 +84,6 @@ export class GameManager {
     }
 
     updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
-        console.log("Player action changed: ", playerActionWrapper);
         this._gameStateManager.dispatch(fromState.UpdateMouvement.create(playerActionWrapper));
     }
 

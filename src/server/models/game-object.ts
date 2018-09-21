@@ -9,8 +9,6 @@ export enum ObjectType {
     Bomb = "BOMB"
 }
 
-export const OUT_OF_BOUND: GameObject = null;
-
 /** Any object that can be displayed on the map has these properties. */
 export class GameObject {
     type: ObjectType;
@@ -36,7 +34,7 @@ export class Wall extends GameObject {
 
     constructor(posInPixels: Point, width: number, height: number) {
         super();
-        
+
         this.coordinates = posInPixels;
         this.width = width;
         this.height = height;
@@ -48,7 +46,7 @@ export class BreakableItem extends GameObject {
 
     constructor(posInPixels: Point, width: number, height: number) {
         super();
-        
+
         this.coordinates = posInPixels;
         this.width = width;
         this.height = height;

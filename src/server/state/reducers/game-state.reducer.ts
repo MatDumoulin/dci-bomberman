@@ -1,13 +1,13 @@
-import { Bomb, GameMap, Player, PlayerId, PlayerAction, Point, OUT_OF_BOUND, ObjectType } from "../../models";
+import { Bomb, GameMap, Player, PlayerId, Point } from "../../models";
 import * as MapDescriptor from "./default-map";
 import { GameAction } from "dci-game-server";
 import * as fromActions from "../actions";
+import { GameEngine } from "../../core/game-engine";
 
 export interface GameState {
     gameId: string;
     gameMap: GameMap;
     players: { [id: string]: Player };
-    bombs: Bomb[];
     // collectibles: Collectible[];
     paused: boolean;
     isOver: boolean;
@@ -25,7 +25,6 @@ export const defaultGameState: GameState = {
     gameId: "1", // TODO: Get the id from a uuid generator
     gameMap: createDefaultGameMap(),
     players: {},
-    bombs: [],
     // collectibles: []
     paused: false,
     isOver: false,
@@ -190,52 +189,11 @@ function updatePlayerPosition(state: GameState, player: Player): Player {
     }
 
     // Then, we compute the new position of the player (if no collision).
-    let left = player.coordinates.x + player.speed * move.x;
-    let top = player.coordinates.y + player.speed * move.y;
-    const bottom = top + player.height - 1; // -1 because the pixels are 0 based.
-    const right = left + player.width - 1;
+    const left = player.coordinates.x + player.speed * move.x;
+    const top = player.coordinates.y + player.speed * move.y;
 
-    // After that, we adjust the position to match the collisions.
-    const topLeftTile = state.gameMap.getTileFromPixels(top, left);
-    const topRightTile = state.gameMap.getTileFromPixels(top, right);
-    const bottomLeftTile = state.gameMap.getTileFromPixels(bottom, left);
-    const bottomRightTile = state.gameMap.getTileFromPixels(bottom, right);
-
-/*     if(newTile === OUT_OF_BOUND) {
-        if(newX < 0) {
-            newX = 0;
-        }
-        else {
-            const maxX = ( state.gameMap.getTileWidth() * state.gameMap.getWidth() ) - player.width;
-            if(newX > maxX) {
-                newX = maxX;
-            }
-        }
-
-        if(newY < 0) {
-            newY = 0;
-        }
-        else {
-            const maxY = ( state.gameMap.getTileHeight() * state.gameMap.getHeight() ) - player.height;
-            if(newY > maxY) {
-                newY = maxY;
-            }
-        }
-    }
-    else if(newTile.type !== ObjectType.Walkable) {
-        newX =
-    } */
-
-    if(topLeftTile === OUT_OF_BOUND || topLeftTile.type !== ObjectType.Walkable ||
-        topRightTile === OUT_OF_BOUND || topRightTile.type !== ObjectType.Walkable ||
-        bottomLeftTile === OUT_OF_BOUND || bottomLeftTile.type !== ObjectType.Walkable ||
-        bottomRightTile === OUT_OF_BOUND || bottomRightTile.type !== ObjectType.Walkable) {
-        left = player.coordinates.x;
-        top = player.coordinates.y;
-    }
-
-    const newPosition = new Point(left, top);
-    const updatedPlayer = {...player, coordinates: newPosition};
+    const desiredNewPosition = new Point(left, top);
+    const updatedPlayer = GameEngine.movePlayerTo(state, player, desiredNewPosition);
 
     return updatedPlayer;
 }

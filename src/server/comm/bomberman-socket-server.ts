@@ -58,7 +58,6 @@ export class BombermanSocketServer implements SocketServer {
             });
 
             socket.on('PlayerAction', (newActions: PlayerActionWrapper) => {
-                console.log("Team " + newActions.playerId + " actions changed.");
                 this._gameManager.updatePlayerActions(newActions);
             });
 
