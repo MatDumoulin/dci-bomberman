@@ -106,6 +106,19 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 players: updatedPlayers
             };
         }
+        case fromActions.BOMB_PLANTED: {
+            const plantedBomb = action.payload as Bomb;
+            const tileRow = state.gameMap.getRowFromPixels(plantedBomb.coordinates.y);
+            const tileCol = state.gameMap.getColFromPixels(plantedBomb.coordinates.x);
+            const oldTile = state.gameMap.get(tileRow, tileCol);
+
+
+            // Then, we reflect the changes to our state.
+            return {
+                ...state,
+                players: updatedPlayers
+            };
+        }
 
         default:
             return state;
