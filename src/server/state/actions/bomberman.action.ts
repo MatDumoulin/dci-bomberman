@@ -1,6 +1,6 @@
-import { Action } from "redux";
 import { Bomb, PlayerId, PlayerActionWrapper } from "../../models";
-import { GameAction } from "dci-game-server";
+import { Action } from "dci-game-server";
+import { GameState } from "../game-state.interface";
 
 /** Contains all of the actions that can be performed in the bomberman game. */
 export const JOIN_GAME = "[User] Wants to join the game";
@@ -34,7 +34,7 @@ export const GAME_STATE_CHANGED = "[Game] state has changed";
 
 // Action class implementation
 export class JoinGame {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: JOIN_GAME,
       payload
@@ -43,15 +43,16 @@ export class JoinGame {
 }
 
 export class GameJoined {
-  static create(): GameAction {
+  static create(payload: PlayerId): Action {
     return {
-      type: GAME_JOINED
+      type: GAME_JOINED,
+      payload
     };
   }
 }
 
 export class LeaveGame {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: LEAVE_GAME,
       payload
@@ -60,7 +61,7 @@ export class LeaveGame {
 }
 
 export class GameLeft {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: GAME_LEFT,
       payload
@@ -69,7 +70,7 @@ export class GameLeft {
 }
 
 export class PauseGame {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: PAUSE_GAME
     };
@@ -77,7 +78,7 @@ export class PauseGame {
 }
 
 export class GamePaused {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: GAME_PAUSED
     };
@@ -85,7 +86,7 @@ export class GamePaused {
 }
 
 export class StartGame {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: START_GAME
     };
@@ -93,7 +94,7 @@ export class StartGame {
 }
 
 export class GameStarted {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: GAME_STARTED
     };
@@ -101,7 +102,7 @@ export class GameStarted {
 }
 
 export class ResumeGame {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: RESUME_GAME
     };
@@ -109,7 +110,7 @@ export class ResumeGame {
 }
 
 export class GameResumed {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: GAME_RESUMED
     };
@@ -117,7 +118,7 @@ export class GameResumed {
 }
 
 export class UpdateMouvement {
-  static create(payload: PlayerActionWrapper): GameAction {
+  static create(payload: PlayerActionWrapper): Action {
     return {
       type: UPDATE_MOVEMENT,
       payload
@@ -126,7 +127,7 @@ export class UpdateMouvement {
 }
 
 export class UpdateAllPositions {
-  static create(): GameAction {
+  static create(): Action {
     return {
       type: UPDATE_ALL_POSITIONS
     };
@@ -134,7 +135,7 @@ export class UpdateAllPositions {
 }
 
 export class PlantBomb {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: PLANT_BOMB,
       payload
@@ -143,7 +144,7 @@ export class PlantBomb {
 }
 
 export class CannotPlantBomb {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: PLANT_BOMB_IMPOSSIBLE,
       payload
@@ -152,7 +153,7 @@ export class CannotPlantBomb {
 }
 
 export class BombPlanted {
-  static create(payload: Bomb): GameAction {
+  static create(payload: Bomb): Action {
     return {
       type: BOMB_PLANTED,
       payload
@@ -161,7 +162,7 @@ export class BombPlanted {
 }
 
 export class BombExploded {
-  static create(payload: Bomb): GameAction {
+  static create(payload: Bomb): Action {
     return {
       type: BOMB_EXPLODED,
       payload
@@ -170,7 +171,7 @@ export class BombExploded {
 }
 
 export class PlayerDamaged {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: PLAYER_DAMAGED,
       payload
@@ -179,7 +180,7 @@ export class PlayerDamaged {
 }
 
 export class PlayerDied {
-  static create(payload: PlayerId): GameAction {
+  static create(payload: PlayerId): Action {
     return {
       type: PLAYER_DIED,
       payload
@@ -188,9 +189,10 @@ export class PlayerDied {
 }
 
 export class GameStateChanged {
-  static create(): GameAction {
+  static create(state: GameState): Action {
     return {
-      type: GAME_STATE_CHANGED
+      type: GAME_STATE_CHANGED,
+      payload: state
     };
   }
 }

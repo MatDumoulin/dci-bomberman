@@ -78,26 +78,14 @@ export class GameMap {
         return this._tiles[tileRow][tileCol];
     }
 
-    // This is not a deep clone, which mean that the cells of the map references the same tiles.
-    clone(): GameMap {
-        const clone = new GameMap();
-        clone._spawnPositions = this.getSpawns();
-        clone._tiles = this._tiles.map(row => row.map(col => col)); // Shallow copy of the 2d array.
-
-        return clone;
-    }
-
     /**
      * Sets the tile at the given coords to the given value.
      * @param value The new value of the tile. Do not set it to null since it is considered to be out of bound.
      */
-    set(row: number, col: number, value: Tile): GameMap {
+    set(row: number, col: number, value: Tile): void {
         if(this.isOutOfBound(row, col)) {
             throw new Error(`Cannot set tile value since it is out of bound. Given coords were [Row=${row}; Col=${col}]`);
         }
-
-        // Since we are working with immutable objects, we got to return the new GameMap.
-        const clone = this.clone();
 
         this._tiles[row][col] = value;
     }

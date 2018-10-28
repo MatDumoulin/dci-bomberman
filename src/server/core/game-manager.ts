@@ -3,6 +3,9 @@ import * as fromServer from 'dci-game-server';
 import { Unsubscribe } from "redux";
 import { createStore } from "../state/store-creater";
 import { PlayerActionWrapper, PlayerId } from "../models";
+import { Store, Action } from "dci-game-server";
+import { GameState } from "../state";
+import { Subscription } from "rxjs";
 const gameloop = require('node-gameloop');
 
 /**
@@ -13,22 +16,20 @@ export class GameManager {
     private _isGameRunning = false;
     private _gameLoopId: number = null;
     private _currentGameState: fromState.GameState;
-    private _gameStateManager: fromServer.GameState<fromState.GameState>;
-    private _unsubscribeFromStore: Unsubscribe;
+    private _store: Store<GameState, Action>;
+    private _storeSubscription: Subscription;
 
-    constructor() {
+    constructor(store: Store<GameState, Action>) {
         // Initializes the store
-        this._gameStateManager = createStore();
+        this._store = store;
         // And retrieves the state whenever it changes.
-        this._unsubscribeFromStore = this._gameStateManager.subscribe(() => {
-            this._currentGameState = this._gameStateManager.getState();
+        this._storeSubscription = this._store.getObservableState().subscribe((state) => {
+            this._currentGameState = state;
         });
-
-        this._currentGameState = this._gameStateManager.getState();
     }
 
     cleanUpResources(): void {
-        this._unsubscribeFromStore();
+        this._storeSubscription.unsubscribe();
     }
 
 
@@ -44,7 +45,7 @@ export class GameManager {
         this._isGameRunning = true;
 
         this._gameLoopId = gameloop.setGameLoop( () => this.gameIteration(), 1000/this.FPS);
-        this._gameStateManager.dispatch(fromState.StartGame.create());
+        this._store.dispatch(fromState.StartGame.create());
     }
 
     /**
@@ -66,7 +67,7 @@ export class GameManager {
      */
     pauseGame(): void {
         if(!this._currentGameState.paused) {
-            this._gameStateManager.dispatch(fromState.PauseGame.create());
+            this._store.dispatch(fromState.PauseGame.create());
         }
     }
 
@@ -75,16 +76,16 @@ export class GameManager {
      */
     resumeGame(): void {
         if(this._currentGameState.paused) {
-            this._gameStateManager.dispatch(fromState.ResumeGame.create());
+            this._store.dispatch(fromState.ResumeGame.create());
         }
     }
 
     addPlayer(playerId: PlayerId) {
-        this._gameStateManager.dispatch(fromState.JoinGame.create(playerId));
+        this._store.dispatch(fromState.JoinGame.create(playerId));
     }
 
     updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
-        this._gameStateManager.dispatch(fromState.UpdateMouvement.create(playerActionWrapper));
+        this._store.dispatch(fromState.UpdateMouvement.create(playerActionWrapper));
     }
 
     getGameState(): fromState.GameState {
@@ -101,7 +102,7 @@ export class GameManager {
         }
 
         // Update the position of the players
-        this._gameStateManager.dispatch(fromState.UpdateAllPositions.create());
+        this._store.dispatch(fromState.UpdateAllPositions.create());
         // Then, check if the player wants to plant a bomb.
         this.checkForPlayersToPlantBombs();
     }
@@ -112,7 +113,7 @@ export class GameManager {
             const player = this._currentGameState.players[playerId];
 
             if (player.actions.plant_bomb) {
-                this._gameStateManager.dispatch(fromState.PlantBomb.create(playerId));
+                this._store.dispatch(fromState.PlantBomb.create(playerId));
             }
         }
     }

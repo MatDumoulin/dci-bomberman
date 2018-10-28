@@ -1,6 +1,6 @@
 import { SocketServer, SocketManager } from 'dci-game-server';
 import { Server } from 'socket.io';
-import * as fromStore from '../state';
+import * as fromState from '../state';
 import { PlayerActionWrapper, PlayerId } from '../models';
 import { GameManager } from '../core';
 
@@ -67,7 +67,7 @@ export class BombermanSocketServer implements SocketServer {
         });
     }
 
-    startGame(gameState: fromStore.GameState): void {
+    startGame(gameState: fromState.GameState): void {
         this._io.emit("GameStarted", gameState);
     }
 
@@ -81,7 +81,7 @@ export class BombermanSocketServer implements SocketServer {
         console.log("GAME JOINED");
     }
 
-    notifyGameStateChanged(gameState: fromStore.GameState): void {
+    notifyGameStateChanged(gameState: fromState.GameState): void {
         this._io.emit("StateChanged", gameState);
     }
 

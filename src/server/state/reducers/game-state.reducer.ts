@@ -1,37 +1,10 @@
 import { Bomb, GameMap, Player, PlayerId, Point } from "../../models";
-import * as MapDescriptor from "./default-map";
-import { GameAction } from "dci-game-server";
+import * as MapDescriptor from "../default-state/default-map";
+import { Action } from "dci-game-server";
 import * as fromActions from "../actions";
 import { GameEngine } from "../../core/game-engine";
 
-export interface GameState {
-    gameId: string;
-    gameMap: GameMap;
-    players: { [id: string]: Player };
-    // collectibles: Collectible[];
-    paused: boolean;
-    isOver: boolean;
-    hasStarted: boolean;
-}
-
-function createDefaultGameMap(): GameMap {
-    const gameMap = new GameMap();
-    gameMap.initFromMapDescriptor(MapDescriptor.defaultMap);
-
-    return gameMap;
-}
-
-export const defaultGameState: GameState = {
-    gameId: "1", // TODO: Get the id from a uuid generator
-    gameMap: createDefaultGameMap(),
-    players: {},
-    // collectibles: []
-    paused: false,
-    isOver: false,
-    hasStarted: false
-};
-
-export function gameStateReducer(state = defaultGameState, action: GameAction) {
+/* export function gameStateReducer(state = defaultGameState, action: GameAction) {
     switch (action.type) {
         case fromActions.START_GAME: {
             // Set the position of all players to their spawn.
@@ -124,13 +97,13 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
             return state;
     }
 }
-
+ */
 /**
  * Returns a copy of the players with their positions set to the
  * spawning points of the map. This function is a pure function.
  * @param state The current state of the game.
  */
-function setPlayersPositionToSpawn(state: GameState): { [id: string]: Player } {
+/* function setPlayersPositionToSpawn(state: GameState): { [id: string]: Player } {
     let players: { [id: string]: Player } = {};
     let playerIds: PlayerId[] = Object.keys(state.players);
     const spawns = state.gameMap.getSpawns();
@@ -150,7 +123,7 @@ function setPlayersPositionToSpawn(state: GameState): { [id: string]: Player } {
     }
 
     return players;
-}
+} */
 
 
 /**
@@ -158,7 +131,7 @@ function setPlayersPositionToSpawn(state: GameState): { [id: string]: Player } {
  * spawning points of the map. This function is a pure function.
  * @param state The current state of the game.
  */
-function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
+/* function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
     const spawns = state.gameMap.getSpawns();
 
     // If there are more players than spawns, throw an error.
@@ -173,7 +146,7 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
     const updatedPlayer = {...player, coordinates: spawnCopy};
 
     return updatedPlayer;
-}
+} */
 
 
 /**
@@ -181,7 +154,7 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
  * spawning points of the map. This function is a pure function.
  * @param state The current state of the game.
  */
-function updatePlayerPosition(state: GameState, player: Player): Player {
+/* function updatePlayerPosition(state: GameState, player: Player): Player {
     const move = {x: 0, y: 0};
     // First, we convert the move to numeric values.
     if(player.actions.move_up) {
@@ -210,3 +183,4 @@ function updatePlayerPosition(state: GameState, player: Player): Player {
 
     return updatedPlayer;
 }
+ */

@@ -11,9 +11,9 @@ export class GameEngine {
 
     /**
      * This functions tries to move the player to the given position.
-     * If the position is not valid, it returns the player without changing it.
+     * If the position is not valid, the position of the player is not updated.
      */
-    static movePlayerTo(state: GameState, player: Player, newPos: Point): Player {
+    static movePlayerTo(state: GameState, player: Player, newPos: Point): void {
         // Then, we compute the new position of the player (if no collision).
         const left = newPos.x;
         const top = newPos.y;
@@ -27,17 +27,14 @@ export class GameEngine {
         const bottomRightTile = state.gameMap.getTileFromPixels(bottom, right);
 
 
-        // If the destination is not out of bound and is not a walkable cell, cancel the move.
-        if(topLeftTile === OUT_OF_BOUND || topLeftTile.info.type !== ObjectType.Walkable ||
-            topRightTile === OUT_OF_BOUND || topRightTile.info.type !== ObjectType.Walkable ||
-            bottomLeftTile === OUT_OF_BOUND || bottomLeftTile.info.type !== ObjectType.Walkable ||
-            bottomRightTile === OUT_OF_BOUND || bottomRightTile.info.type !== ObjectType.Walkable) {
-                return player;
+        // If the destination is in the map and the player can walk on it, move the player
+        if(topLeftTile !== OUT_OF_BOUND && topLeftTile.info.type === ObjectType.Walkable &&
+            topRightTile !== OUT_OF_BOUND && topRightTile.info.type === ObjectType.Walkable &&
+            bottomLeftTile !== OUT_OF_BOUND && bottomLeftTile.info.type === ObjectType.Walkable &&
+            bottomRightTile !== OUT_OF_BOUND && bottomRightTile.info.type === ObjectType.Walkable) {
+
+            player.coordinates.x = left;
+            player.coordinates.y = top;
         }
-
-        const updatedPosition = new Point(left, top);
-        const updatedPlayer = {...player, coordinates: updatedPosition};
-
-        return updatedPlayer;
     }
 }
