@@ -1,1 +1,1 @@
-export * from './bomberman-socket-server';
+export * from './message';

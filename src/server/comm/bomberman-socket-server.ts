@@ -1,10 +1,10 @@
-import { SocketServer, SocketManager } from 'dci-game-server';
+/* import { SocketServer, SocketManager } from 'dci-game-server';
 import { Server } from 'socket.io';
 import * as fromStore from '../state';
 import { PlayerActionWrapper, PlayerId } from '../models';
 import { GameManager } from '../core';
 
-/** Singleton class that manages the socket communication for the server */
+/** Singleton class that manages the socket communication for the server *//*
 export class BombermanSocketServer implements SocketServer {
     private static _instance: BombermanSocketServer;
     private _io: Server;
@@ -90,3 +90,4 @@ export class BombermanSocketServer implements SocketServer {
         this._io.close();
     }
 }
+ */

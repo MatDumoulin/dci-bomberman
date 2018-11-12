@@ -9,8 +9,6 @@ export enum ObjectType {
     Bomb = "BOMB"
 }
 
-export const OUT_OF_BOUND: GameObject = null;
-
 /** Any object that can be displayed on the map has these properties. */
 export class GameObject {
     type: ObjectType;

@@ -3,6 +3,8 @@ import { Bomb, PlayerId, PlayerActionWrapper } from "../../models";
 import { GameAction } from "dci-game-server";
 
 /** Contains all of the actions that can be performed in the bomberman game. */
+export const INIT_GAME = "[Game] is being initialized";
+
 export const JOIN_GAME = "[User] Wants to join the game";
 export const GAME_JOINED = "[User] Joined the game";
 
@@ -19,18 +21,29 @@ export const RESUME_GAME = "[User] Wants to resume the game";
 export const GAME_RESUMED = "[User] Game is resumed";
 
 export const UPDATE_MOVEMENT = "[Player] Has changed the way he's moving";
+export const GAME_TICK = "[Game] ticked";
 
 // User has a bomb limit. This limit changes with collectible.
 export const PLANT_BOMB = "[Player] Wants to plant a bomb";
+export const PLANT_BOMB_FAILED = "[Player] Cannot plant a bomb";
 export const BOMB_PLANTED = "[Player] Planted a bomb";
 export const BOMB_EXPLODED = "[Bomb] Has exploded";
 
 export const PLAYER_DAMAGED = "[Player] Has been hit by a bomb";
 export const PLAYER_DIED = "[Player] Is dead";
+export const PLAYER_HAS_WON = "[Player] Has won the game";
 
 export const GAME_STATE_CHANGED = "[Game] state has changed";
 
 // Action class implementation
+export class InitGame {
+  static create(): GameAction {
+    return {
+      type: INIT_GAME
+    };
+  }
+}
+
 export class JoinGame {
   static create(payload: PlayerId): GameAction {
     return {
@@ -123,6 +136,15 @@ export class UpdateMouvement {
   }
 }
 
+export class GameTick {
+  static create(payload: number): GameAction {
+    return {
+      type: GAME_TICK,
+      payload
+    };
+  }
+}
+
 export class PlantBomb {
   static create(payload: PlayerId): GameAction {
     return {
@@ -131,9 +153,17 @@ export class PlantBomb {
     };
   }
 }
+export class PlantBombFailed {
+  static create(payload: PlayerId): GameAction {
+    return {
+      type: PLANT_BOMB_FAILED,
+      payload
+    };
+  }
+}
 
 export class BombPlanted {
-  static create(payload: Bomb): GameAction {
+  static create(payload: PlayerId): GameAction {
     return {
       type: BOMB_PLANTED,
       payload
@@ -168,6 +198,15 @@ export class PlayerDied {
   }
 }
 
+export class PlayerHasWon {
+  static create(payload: PlayerId): GameAction {
+    return {
+      type: PLAYER_HAS_WON,
+      payload
+    };
+  }
+}
+
 export class GameStateChanged {
   static create(): GameAction {
     return {
@@ -193,4 +232,5 @@ export type BombermanAction =
   | BombExploded
   | PlayerDamaged
   | PlayerDied
+  | PlayerHasWon
   | GameStateChanged;
