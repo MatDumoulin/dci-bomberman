@@ -1,5 +1,4 @@
-// To prevent typescript errors
-(global as any).WebSocket =  require('ws');
+require("./colyseusjs.polyfill");
 
 import { Client, DataChange } from "colyseus.js";
 import { PlayerAction } from "../server/models";
@@ -53,7 +52,7 @@ function sendRandomMoves() {
         // If === 4, don't move.
 
         room.send({
-            type: "PlayerAction", 
+            type: "PlayerAction",
             payload: {playerId: this._client.id, actions}
         });
     }, 3000);

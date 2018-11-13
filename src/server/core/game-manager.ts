@@ -91,7 +91,7 @@ export class GameManager {
 
     updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
         // Only update the actions of the player if the game has started, he's in the game and he is alive.
-        if(this._currentGameState.hasStarted && 
+        if(this._currentGameState.hasStarted &&
             this._currentGameState.players[playerActionWrapper.playerId] !== undefined &&
             this._currentGameState.players[playerActionWrapper.playerId].isAlive) {
 

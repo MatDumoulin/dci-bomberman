@@ -47,7 +47,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
 
             // If there is only one player in the game, he has won.
             const playerIds = Object.keys(state.players);
-            const winner = playerIds.length === 1 ? playerIds[0] : null;
+            const winner: PlayerId = /*playerIds.length === 1 ? playerIds[0] : */null;
             return {
                 ...state,
                 hasStarted: true,
@@ -131,7 +131,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 },
                 (tile: Tile, notImportant: boolean) => {
                     return {
-                        ...tile, 
+                        ...tile,
                         isOnFire: false
                     };
                 }
@@ -143,7 +143,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
             const updatedPlayers: { [id: string]: Player } = {...state.players};
             let tilesOfPlayer: Tile[];
             let updatedWinner = state.winner;
-            
+
             for (const playerId of playerIds) {
                 const player = state.players[playerId];
                 // Only move the player if he's alive.
@@ -151,12 +151,12 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                     updatedPlayers[playerId] = updatePlayerPosition(state, player);
                     // We get all the tiles that the player is on currently.
                     tilesOfPlayer = state.gameMap.getAllTilesInRange(
-                        updatedPlayers[playerId].coordinates.y, 
-                        updatedPlayers[playerId].coordinates.x, 
-                        updatedPlayers[playerId].coordinates.y + updatedPlayers[playerId].height, 
+                        updatedPlayers[playerId].coordinates.y,
+                        updatedPlayers[playerId].coordinates.x,
+                        updatedPlayers[playerId].coordinates.y + updatedPlayers[playerId].height,
                         updatedPlayers[playerId].coordinates.x + updatedPlayers[playerId].width);
-                    
-                    // From this list, we search for player kill. 
+
+                    // From this list, we search for player kill.
                     if(tilesOfPlayer.some(tile => tile.isOnFire)) {
                         updatedPlayers[playerId] = {
                             ...updatedPlayers[playerId],
@@ -197,7 +197,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
             const tileCol = state.gameMap.getColFromPixels(player.coordinates.x + (player.width / 2));
 
             const bomb = new Bomb(playerId, state.time, player.bombPower, tileRow, tileCol);
-            
+
             // Adding the bomb to the player.
             const updatedPlayers = {
                 ...state.players,
@@ -215,8 +215,8 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 }
             });
 
-            const updatedBombs = { 
-                ...state.bombs, 
+            const updatedBombs = {
+                ...state.bombs,
                 [bomb.id]: bomb
             };
 
@@ -376,7 +376,7 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
             // If the explosion is blocked by a wall,
             if(tile === OUT_OF_BOUND || tile.info.type === ObjectType.Wall) {
                 // Quit this nested loop since the explosion has been stopped.
-                break; 
+                break;
             }
             // If the tile is breakable, set it to walkable now.
             else if(tile.info.type === ObjectType.BreakableItem) {
@@ -387,13 +387,13 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
 
                 mapTransformation.push(new ExplosionInformation(probedRow, probedCol, tile, after));
                 // Quit this nested loop since the explosion has been stopped by the breakable item.
-                break; 
+                break;
             }
             else {
                 mapTransformation.push(new ExplosionInformation(probedRow, probedCol, tile, after));
             }
 
-            
+
         }
     }
 
