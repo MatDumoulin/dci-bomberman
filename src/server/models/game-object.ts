@@ -7,8 +7,8 @@ export enum ObjectType {
     Player = "PLAYER",
     Bomb = "BOMB",
     PowerUp = "POWER-UP",
-    SpeedUp = "SPEED-UP",
-    BombUp = "POWER-UP"
+    BombUp = "BOMB-UP",
+    SpeedUp = "SPEED-UP"
 }
 
 /** Any object that can be displayed on the map has these properties. */

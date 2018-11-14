@@ -15,7 +15,7 @@ export class Bomb extends GameObject {
     row: number;
     col: number;
 
-    /** 
+    /**
      * The power of the explosion for this bomb, in map cell.
      * This power is the number of cells that will be affected by the bomb,
      * starting from the position of the bomb to the end of one side of the explosion.
@@ -24,9 +24,7 @@ export class Bomb extends GameObject {
 
 
     constructor(plantedBy: PlayerId, plantedAt: number, bombPower: number, row: number, col: number) {
-        super();
-        this.width = 32;
-        this.height = 32;
+        super(32, 32);
         this.plantedBy = plantedBy;
         this.plantedAt = plantedAt;
         this.id = ++Bomb._idSequence;

@@ -79,6 +79,7 @@ export class RoomHandler extends Room<fromState.GameState> {
                     this.state.players = state.gameState.players;
                     this.state.time = state.gameState.time;
                     this.state.winner = state.gameState.winner;
+                    this.state.collectibles = state.gameState.collectibles;
                 }
             }
         });

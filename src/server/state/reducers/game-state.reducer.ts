@@ -121,7 +121,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
         }
         case fromActions.GAME_TICK: {
             // For each tile on fire, check if the explosion is over.
-            const updatedMap = state.gameMap.immutableBatchSet(
+            let updatedMap = state.gameMap.immutableBatchSet(
                 (tile: Tile, row: number, col: number) => {
                     if(tile.isOnFire && tile.timeOfEndOfFire < state.time ) {
                         return true; // Does not matter since we are not using it.
@@ -141,6 +141,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
             // something that would change their state.
             const playerIds = Object.keys(state.players);
             const updatedPlayers: { [id: string]: Player } = {...state.players};
+            let consumedCollectibles: Tile[] = []; // This is a slight optimization to remove the collectibles from the game map.
             let tilesOfPlayer: Tile[];
             let updatedWinner = state.winner;
 
@@ -175,8 +176,36 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                             updatedWinner = alivePlayers[0];
                         }
                     }
+                    // Check if the player walked on a collectible.
+                    for(const tile of tilesOfPlayer) {
+                        if(tile.collectible !== null) {
+                            updatedPlayers[playerId] = tile.collectible.apply(updatedPlayers[playerId]);
+                            consumedCollectibles.push(tile);
+                        }
+                    }
                 }
             }
+
+            // Remove the collectibles from the game map.
+            updatedMap = updatedMap.immutableBatchSet(
+                (tile: Tile, row: number, col: number) => {
+                    if(consumedCollectibles.some(consumed => consumed.col === tile.col && consumed.row === tile.row)) {
+                        return true; // Does not matter since we are not using it.
+                    }
+
+                    return null;
+                },
+                (tile: Tile, notImportant: boolean) => {
+                    return {
+                        ...tile,
+                        collectible: null
+                    } as Tile;
+                }
+            );
+
+            const updatedCollectibles = state.collectibles.filter(collectible =>
+                !consumedCollectibles.some(consumed => consumed.col === collectible.col && consumed.row === collectible.row)
+            );
 
 
             // Then, we reflect the changes to our state.
@@ -184,6 +213,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 ...state,
                 players: updatedPlayers,
                 gameMap: updatedMap,
+                collectibles: updatedCollectibles,
                 time: action.payload,
                 winner: updatedWinner,
                 isOver: updatedWinner !== null
@@ -203,7 +233,10 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 ...state.players,
                 [playerId]: {
                     ...player,
-                    bombs: [...player.bombs, bomb]
+                    bombs: [...player.bombs, bomb],
+                    // The player can send the drop bomb action for more than one game tick. This
+                    // prevents unwanted double bomb drop.
+                    actions: {...player.actions, plant_bomb: false} as PlayerAction
                 }
             };
 
@@ -261,10 +294,10 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 )
             );
 
-            const updatedCollectibles = {
+            const updatedCollectibles = [
                 ...remainingCollectibles,
                 ...newCollectibles
-            };
+            ];
 
             // Then, we remove the bomb from the player that planted it.
             // We let a grace period of one game tick to the players to check if there are killed by the explosion.
@@ -386,15 +419,16 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
     let tile;
     // First up, we check get all the tiles exposed to the explosion.
     for(const direction of GameEngine.Directions) {
-        for(let i = 1; i <= bomb.bombPower; ++i) {
-            const probedRow = bomb.row + direction[0];
-            const probedCol = bomb.col + direction[1];
+        for(let i = 1; i < bomb.bombPower; ++i) {
+            const probedRow = bomb.row + direction[0] * i;
+            const probedCol = bomb.col + direction[1] * i;
             tile = gameMap.get(probedRow, probedCol);
 
             // We set the tile on fire.
             let after: Partial<Tile> = {
                 isOnFire: true,
-                timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION
+                timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION,
+                collectible: null
             };
 
             // If the explosion is blocked by a wall,
@@ -436,7 +470,8 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
     const after: Partial<Tile> = {
         isOnFire: true,
         timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION,
-        bombs: tile.bombs.filter(bombInArray => bomb.id !== bombInArray.id)
+        bombs: tile.bombs.filter(bombInArray => bomb.id !== bombInArray.id),
+        collectible: null
     };
 
     mapTransformation.push(new ExplosionInformation(bomb.row, bomb.col, tile, after));
@@ -451,15 +486,15 @@ function generateUpgrade(tile: Tile): Upgrade {
 
     // PowerUp
     if(upgradeNumber === 0) {
-        upgrade = new PowerUp(tile.row, tile.col);
+        upgrade = new PowerUp(tile);
     }
     // BombUp
     else if(upgradeNumber === 1) {
-        upgrade = new BombUp(tile.row, tile.col);
+        upgrade = new BombUp(tile);
     }
     // SpeedUp
     else {
-        upgrade = new SpeedUp(tile.row, tile.col);
+        upgrade = new SpeedUp(tile);
     }
 
     return upgrade;
