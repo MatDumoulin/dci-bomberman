@@ -5,3 +5,4 @@ export * from './player-action';
 export * from './player';
 export * from './point';
 export * from './tile';
+export * from './upgrade';

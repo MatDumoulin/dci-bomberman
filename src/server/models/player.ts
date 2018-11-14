@@ -15,7 +15,7 @@ export class Player extends GameObject {
     bombs: Bomb[] = []; // There are no bombs from him on the field for the moment.
     isAlive = true;
 
-    /** 
+    /**
      * The power of the explosion for this bomb, in map cell.
      * This power is the number of cells that will be affected by the bomb,
      * starting from the position of the bomb to the end of one side of the explosion.
@@ -23,11 +23,9 @@ export class Player extends GameObject {
     bombPower = 2;
 
     constructor(playerId: PlayerId, joinOrder: number) {
-        super();
+        super(24, 24);
         this.playerId = playerId;
         this.actions = new PlayerAction();
         this.joinOrder = joinOrder;
-        this.width = 26;
-        this.height = 26;
     }
 }

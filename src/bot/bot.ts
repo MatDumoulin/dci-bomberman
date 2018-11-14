@@ -14,6 +14,8 @@ console.log((global as any).WebSocket);
 const args = minimist(process.argv.slice(2)); // The first 2 arguments are useless.
 const serverUrl = args.server || "localhost:3000";
 
+console.log(serverUrl);
+
 const client = new Client('ws:' + serverUrl);
 client.id = uuid();
 
@@ -25,7 +27,11 @@ room.onJoin.add(() => {
     console.log("Bot has joined room ", room.id);
 });
 
-room.listen(":hasStarted", (change: DataChange) => {
+client.onError.add((error: string) => {
+    console.error("An error occurred: ", error);
+});
+
+room.listen("hasStarted", (change: DataChange) => {
     if(change.value === true) {
         console.log("Game has started.");
         sendRandomMoves();
@@ -39,26 +45,34 @@ function sendRandomMoves() {
 
         if(randomMove === 0) {
             actions.move_down = true;
+            console.log("Down");
         }
         else if(randomMove === 1) {
             actions.move_up = true;
+            console.log("Up");
         }
         else if(randomMove === 2) {
             actions.move_left = true;
+            console.log("Left");
         }
         else if(randomMove === 3) {
             actions.move_right = true;
+            console.log("Right");
         }
-        // If === 4, don't move.
+        else {
+            console.log("Stand still");
+        }
 
         room.send({
             type: "PlayerAction",
-            payload: {playerId: this._client.id, actions}
+            payload: {playerId: client.id, actions}
         });
     }, 3000);
 }
 
-function cleanUpResources() {
+function cleanUpResources(ex: any) {
+    console.error(ex);
+    console.log("Cleaning up resources...");
     if(interval) {
         clearInterval(interval);
     }
@@ -70,7 +84,7 @@ function cleanUpResources() {
 
 
 //do something when app is closing
-process.on('exit', cleanUpResources);
+// process.on('exit', cleanUpResources);
 
 //catches ctrl+c event
 process.on('SIGINT', cleanUpResources);

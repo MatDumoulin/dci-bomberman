@@ -14,9 +14,9 @@ export interface MapDescriptor {
 
 export class GameMap {
     private _tiles: Tile[][];
-    private _tileWidth = 32; /** In pixels */
-    private _tileHeight = 32; /** In pixels */
     private _spawnPositions: Point[];
+    readonly tileWidth = 32; /** In pixels */
+    readonly tileHeight = 32; /** In pixels */
     tilesOnFire: Point[] = [];
 
     constructor(tiles?: Tile[][], spawns?: Point[]) {
@@ -70,7 +70,7 @@ export class GameMap {
             throw new Error(`Cannot set tile value since it is outside of the map array. Given coords were [Row=${row}; Col=${col}]`);
         }
 
-        const updatedTiles = this._tiles.map((fullRow, rowIndex) => 
+        const updatedTiles = this._tiles.map((fullRow, rowIndex) =>
             fullRow.map((tile, colIndex) => {
                 if(row === rowIndex && col === colIndex) {
                     return updateFunction(tile);
@@ -89,7 +89,7 @@ export class GameMap {
      * @param updateFunction The change to apply on the matching element.
      */
     immutableBatchSet(searchFunction: Function, updateFunction: Function): GameMap {
-        const updatedTiles = this._tiles.map((fullRow, rowIndex) => 
+        const updatedTiles = this._tiles.map((fullRow, rowIndex) =>
             fullRow.map((tile, colIndex) => {
                 const searchResult = searchFunction(tile, rowIndex, colIndex);
 
@@ -105,10 +105,10 @@ export class GameMap {
     }
 
     getRowFromPixels(y: number): number {
-        return Math.floor(y / this._tileHeight);
+        return Math.floor(y / this.tileHeight);
     }
     getColFromPixels(x: number): number {
-        return Math.floor(x / this._tileWidth);
+        return Math.floor(x / this.tileWidth);
     }
     /** Gets the tile object at the given position. */
     getTileFromPixels(y: number, x: number): Tile {
@@ -135,7 +135,7 @@ export class GameMap {
         const leftTileCol = this.getColFromPixels(left);
         const rightTileCol = this.getColFromPixels(right);
 
-        const tilesInRange: Tile[] = [];
+        let tilesInRange: Tile[] = [];
         tilesInRange.push(this.get(topTileRow, leftTileCol));
 
         if(topTileRow !== bottomTileRow) {
@@ -149,6 +149,9 @@ export class GameMap {
         if(topTileRow !== bottomTileRow && leftTileCol !== rightTileCol) {
             tilesInRange.push(this.get(bottomTileRow, rightTileCol));
         }
+
+        // Remove all out of bound tiles since they are not in the game.
+        tilesInRange = tilesInRange.filter(tile => tile !== OUT_OF_BOUND);
 
         return tilesInRange;
     }
@@ -166,18 +169,18 @@ export class GameMap {
 
             let tileCoords: Point;
             for(let col = 0; col < descriptor.width; ++col) {
-                tileCoords = new Point(col * this._tileWidth, row * this._tileHeight);
+                tileCoords = new Point(col * this.tileWidth, row * this.tileHeight);
                 let tile: Tile;
 
                 switch(descriptor.tiles[row][col]) {
                     case ObjectType.Walkable:
-                        tile = new Tile(new WalkableTerrain(tileCoords, this._tileWidth, this._tileHeight), row, col);
+                        tile = new Tile(new WalkableTerrain(tileCoords, this.tileWidth, this.tileHeight), row, col);
                         break;
                     case ObjectType.Wall:
-                        tile = new Tile(new Wall(tileCoords, this._tileWidth, this._tileHeight), row, col);
+                        tile = new Tile(new Wall(tileCoords, this.tileWidth, this.tileHeight), row, col);
                         break;
                     case ObjectType.BreakableItem:
-                        tile = new Tile(new BreakableItem(tileCoords, this._tileWidth, this._tileHeight), row, col);
+                        tile = new Tile(new BreakableItem(tileCoords, this.tileWidth, this.tileHeight), row, col);
                         break;
                     default: throw new Error("Invalid value in descriptor.");
                 }
@@ -187,7 +190,11 @@ export class GameMap {
         }
 
         // Initializing the spawns
-        this._spawnPositions = descriptor.spawnPositions;
+        const spawns = descriptor.spawnPositions.map(spawnTile =>
+            new Point(spawnTile.x * this.tileWidth, spawnTile.y * this.tileHeight)
+        );
+
+        this._spawnPositions = spawns;
     }
 
     /** Initializes the map with a blank state, which means that all cells are set to walkable. */
@@ -199,12 +206,17 @@ export class GameMap {
 
             let tileCoords: Point;
             for(let col = 0; col < width; ++col) {
-                tileCoords = new Point(col * this._tileWidth, row * this._tileHeight);
-                this._tiles[row][col] = new Tile(new WalkableTerrain(tileCoords, this._tileWidth, this._tileHeight), row, col);
+                tileCoords = new Point(col * this.tileWidth, row * this.tileHeight);
+                this._tiles[row][col] = new Tile(new WalkableTerrain(tileCoords, this.tileWidth, this.tileHeight), row, col);
             }
         }
         // Initializing the 4 spawns
-        this._spawnPositions = [new Point(0, 0), new Point(width-1, 0), new Point(0, height-1), new Point(width-1, height-1)];
+        this._spawnPositions = [
+            new Point(0, 0),
+            new Point((width-1) * this.tileWidth, 0),
+            new Point(0, (height-1) * this.tileHeight),
+            new Point((width-1) * this.tileWidth, (height-1) * this.tileHeight)
+        ];
     }
 
     private isOutOfBound(row: number, col: number): boolean {

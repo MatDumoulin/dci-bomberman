@@ -5,8 +5,10 @@ export enum ObjectType {
     Walkable = "WALKABLE",
     BreakableItem = "BREAKABLE",
     Player = "PLAYER",
-    Collectible = "COLLECTIBLE",
-    Bomb = "BOMB"
+    Bomb = "BOMB",
+    PowerUp = "POWER-UP",
+    SpeedUp = "SPEED-UP",
+    BombUp = "POWER-UP"
 }
 
 /** Any object that can be displayed on the map has these properties. */
@@ -15,17 +17,20 @@ export class GameObject {
     coordinates: Point;
     width: number;
     height: number;
+
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+    }
 }
 
 export class WalkableTerrain extends GameObject {
     type = ObjectType.Walkable;
 
     constructor(posInPixels: Point, width: number, height: number) {
-        super();
+        super(width, height);
 
         this.coordinates = posInPixels;
-        this.width = width;
-        this.height = height;
     }
 }
 
@@ -33,11 +38,9 @@ export class Wall extends GameObject {
     type = ObjectType.Wall;
 
     constructor(posInPixels: Point, width: number, height: number) {
-        super();
-        
+        super(width, height);
+
         this.coordinates = posInPixels;
-        this.width = width;
-        this.height = height;
     }
 }
 
@@ -45,10 +48,8 @@ export class BreakableItem extends GameObject {
     type = ObjectType.BreakableItem;
 
     constructor(posInPixels: Point, width: number, height: number) {
-        super();
-        
+        super(width, height);
+
         this.coordinates = posInPixels;
-        this.width = width;
-        this.height = height;
     }
 }

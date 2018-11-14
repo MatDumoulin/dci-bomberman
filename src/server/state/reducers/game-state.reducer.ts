@@ -1,4 +1,4 @@
-import { Bomb, GameMap, Player, PlayerId, PlayerAction, Point, Tile, ObjectType, OUT_OF_BOUND } from "../../models";
+import { Bomb, GameMap, Player, PlayerId, PlayerAction, Point, Tile, ObjectType, OUT_OF_BOUND, Upgrade, PowerUp, BombUp, SpeedUp, UPGRADE_DROP_RATE } from "../../models";
 import * as MapDescriptor from "./default-map";
 import { GameAction } from "dci-game-server";
 import * as fromActions from "../actions";
@@ -11,7 +11,7 @@ export interface GameState {
     gameMap: GameMap;
     players: { [id: string]: Player };
     bombs: { [id: string]: Bomb };
-    // collectibles: Collectible[];
+    collectibles: Upgrade[];
     paused: boolean;
     isOver: boolean;
     hasStarted: boolean;
@@ -31,7 +31,7 @@ export const defaultGameState: GameState = {
     gameMap: createDefaultGameMap(),
     players: {},
     bombs: {},
-    // collectibles: []
+    collectibles: [],
     paused: false,
     isOver: false,
     hasStarted: false,
@@ -47,7 +47,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
 
             // If there is only one player in the game, he has won.
             const playerIds = Object.keys(state.players);
-            const winner: PlayerId = /*playerIds.length === 1 ? playerIds[0] : */null;
+            const winner: PlayerId = playerIds.length === 1 ? playerIds[0] : null;
             return {
                 ...state,
                 hasStarted: true,
@@ -166,7 +166,7 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                         // If there is only one player left, he has won.
                         const alivePlayers: PlayerId[] = [];
                         for (const idOfPlayer of playerIds) {
-                            if(updatedPlayers[playerId].isAlive) {
+                            if(updatedPlayers[idOfPlayer].isAlive) {
                                 alivePlayers.push(idOfPlayer);
                             }
                         }
@@ -247,7 +247,27 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 (tile: Tile, after: Partial<Tile>) => Object.assign({}, tile, after)
             );
 
+            // From this list we add the new collectibles to the collectible list.
+            // When no collectibles were dropped by the bomb explosion, the collectible value is set to null.
+            const newCollectibles = affectedCells.map(change => change.after.collectible).filter(collectible => collectible !== null);
+            // If the collectible value was set and now is gone, the player destroyed the collectible.
+            const removedCollectibles = affectedCells
+                .filter(change => change.before.collectible !== null && change.after.collectible === null)
+                .map(change => change.before.collectible);
+
+            const remainingCollectibles = state.collectibles.filter(collectible =>
+                !removedCollectibles.some(removed =>
+                    removed.col === collectible.col && removed.row === collectible.row
+                )
+            );
+
+            const updatedCollectibles = {
+                ...remainingCollectibles,
+                ...newCollectibles
+            };
+
             // Then, we remove the bomb from the player that planted it.
+            // We let a grace period of one game tick to the players to check if there are killed by the explosion.
             const updatedPlayers: { [id: string]: Player } = {
                 ...state.players,
                 [bomb.plantedBy]: {
@@ -255,8 +275,6 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                     bombs: state.players[bomb.plantedBy].bombs.filter(bombOfPlayer => bombOfPlayer.id !== bomb.id)
                 }
             };
-
-            // We let a grace period of one game tick to the players to check if there are killed by the explosion.
 
 
             // Finally, we remove the bomb from the list of bombs.
@@ -267,7 +285,8 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 ...state,
                 players: updatedPlayers,
                 gameMap: updatedMap,
-                bombs: updatedBombs
+                bombs: updatedBombs,
+                collectibles: updatedCollectibles
             };
         }
 
@@ -319,8 +338,13 @@ function setPlayerPositionToSpawn(state: GameState, player: Player): Player {
 
     // Working with a copy of the spawn since it will become the new position of the player.
     const spawn = spawns[player.joinOrder - 1];
-    // Setting the player's position to the spawn.
-    const updatedPlayer = {...player, coordinates: spawn};
+    const playerPosition = new Point(
+        spawn.x + (state.gameMap.tileWidth - player.width) / 2,
+        spawn.y + (state.gameMap.tileHeight - player.height) / 2
+    );
+
+    // Setting the player's position.
+    const updatedPlayer = {...player, coordinates: playerPosition};
 
     return updatedPlayer;
 }
@@ -368,7 +392,7 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
             tile = gameMap.get(probedRow, probedCol);
 
             // We set the tile on fire.
-            const after: Partial<Tile> = {
+            let after: Partial<Tile> = {
                 isOnFire: true,
                 timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION
             };
@@ -378,11 +402,21 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
                 // Quit this nested loop since the explosion has been stopped.
                 break;
             }
-            // If the tile is breakable, set it to walkable now.
+            // If the tile is breakable, set it to walkable now and potentially generate upgrade.
             else if(tile.info.type === ObjectType.BreakableItem) {
-                after.info =  {
-                    ...tile.info,
-                    type: ObjectType.Walkable
+                let upgrade: Upgrade = null;
+
+                if(Math.random() < UPGRADE_DROP_RATE) {
+                    upgrade = generateUpgrade(tile);
+                }
+
+                after = {
+                    ...after,
+                    info: {
+                        ...tile.info,
+                        type: ObjectType.Walkable
+                    },
+                    collectible: upgrade
                 };
 
                 mapTransformation.push(new ExplosionInformation(probedRow, probedCol, tile, after));
@@ -408,4 +442,25 @@ function getExplosionImpactOnMap(gameMap: GameMap, bomb: Bomb, currentTime: numb
     mapTransformation.push(new ExplosionInformation(bomb.row, bomb.col, tile, after));
 
     return mapTransformation;
+}
+
+function generateUpgrade(tile: Tile): Upgrade {
+    const upgradeCount = 3;
+    const upgradeNumber = Math.floor(Math.random() * upgradeCount);
+    let upgrade: Upgrade;
+
+    // PowerUp
+    if(upgradeNumber === 0) {
+        upgrade = new PowerUp(tile.row, tile.col);
+    }
+    // BombUp
+    else if(upgradeNumber === 1) {
+        upgrade = new BombUp(tile.row, tile.col);
+    }
+    // SpeedUp
+    else {
+        upgrade = new SpeedUp(tile.row, tile.col);
+    }
+
+    return upgrade;
 }
