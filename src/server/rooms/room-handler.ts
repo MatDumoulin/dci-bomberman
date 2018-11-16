@@ -7,6 +7,8 @@ import { Message } from "../comm";
 
 import * as fromState from "../state";
 import * as fromServer from 'dci-game-server';
+import { JoinRoomOptions } from "./join-room.options";
+import { RoomLogger } from "../core/loggers";
 
 /**
  * This class handles all of the communication with the user.
@@ -15,34 +17,58 @@ export class RoomHandler extends Room<fromState.GameState> {
     private _gameManager: GameManager;
     private _store: Store<fromState.State, fromServer.GameAction>;
     private _unsubscribeFromStore: Unsubscribe;
+    private _logger: RoomLogger;
     cli: CliManager;
-    maxClients = 4;
+    maxPlayerCount = 4;
 
     // Authorize client based on provided options before WebSocket handshake is complete
     // onAuth (options: any) { }
 
     // When room is initialized
     onInit (options: any) {
-        this._store = fromState.createStore();
+        this._store = fromState.createStore(this.roomId);
         this._gameManager = new GameManager(this._store);
         this.cli = new CliManager(this._gameManager);
+        this._logger = new RoomLogger(this.roomId);
 
         this.setState(this._store.getState().gameState);
         this.listenForStateChange();
     }
 
-    // Checks if a new client is allowed to join. (default: `return true`)
-    //requestJoin (options: any, isNew: boolean) { }
+    // Checks if a new client is allowed to join.
+    requestJoin(options: JoinRoomOptions, isNew: boolean): boolean {
+        this._logger.log(`User ${options.clientId} wants to join the game as a ${options.isPlaying ? 'player': 'viewer'}.`);
+
+        // If the user wants to play the game, check if the room is full.
+        if(options.isPlaying) {
+            const playerIds = Object.keys(this.state.players);
+
+            const isRoomFull = playerIds.length < this.maxPlayerCount;
+            const canJoin = isRoomFull && !this.state.hasStarted;
+
+            if(this.state.hasStarted) {
+                this._logger.log("The user cannot join since the game has already started.");
+            }
+            if(!isRoomFull) {
+                this._logger.log("The user cannot join since the room is full.");
+            }
+
+            return canJoin;
+        }
+
+        // Else, let him join has a viewer.
+        return true;
+    }
 
     // When client successfully join the room
     onJoin (client: Client) {
-        console.log("The client ", client.id, " has joined the game.");
+        this._logger.log("The client ", client.id, " has joined the game.");
         this._gameManager.addPlayer(client.id);
     }
 
     // When a client leaves the room
     onLeave (client: Client, consented: boolean) {
-        console.log("The client ", client.id, " has left the game.");
+        this._logger.log("The client ", client.id, " has left the game.");
         this._gameManager.removePlayer(client.id);
     }
 
@@ -56,7 +82,7 @@ export class RoomHandler extends Room<fromState.GameState> {
 
     // Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
     onDispose () {
-        console.log("Cleaning up room...");
+        this._logger.log("Cleaning up room...");
         this._unsubscribeFromStore();
         this._gameManager.cleanUpResources();
         this.cli.cleanUpResources();

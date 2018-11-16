@@ -19,7 +19,7 @@ console.log(serverUrl);
 const client = new Client('ws:' + serverUrl);
 client.id = uuid();
 
-const room = client.join("dci");
+const room = client.join("dci", {isPlaying: true});
 
 let interval: any;
 
