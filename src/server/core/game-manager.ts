@@ -80,11 +80,10 @@ export class GameManager {
     }
 
     removePlayer(playerId: PlayerId) {
-        console.log("The player ", playerId, " has left the game. Stopping the game.");
-
         this._store.dispatch(fromState.LeaveGame.create(playerId));
 
         if(this._currentGameState.hasStarted) {
+            console.log("The player ", playerId, " has left the game. Stopping the game.");
             this.stopGame();
         }
     }

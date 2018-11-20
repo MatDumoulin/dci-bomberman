@@ -43,14 +43,18 @@ export class RoomHandler extends Room<fromState.GameState> {
         if(options.isPlaying) {
             const playerIds = Object.keys(this.state.players);
 
-            const isRoomFull = playerIds.length < this.maxPlayerCount;
-            const canJoin = isRoomFull && !this.state.hasStarted;
+            const isRoomFull = playerIds.length >= this.maxPlayerCount;
+            const isPlayerAlreadyInRoom = this.state.players[options.clientId] !== undefined;
+            const canJoin = !isRoomFull && !this.state.hasStarted && !isPlayerAlreadyInRoom;
 
             if(this.state.hasStarted) {
                 this._logger.log("The user cannot join since the game has already started.");
             }
-            if(!isRoomFull) {
+            else if(isRoomFull) {
                 this._logger.log("The user cannot join since the room is full.");
+            }
+            else if(isPlayerAlreadyInRoom) {
+                this._logger.log("The user cannot join the same game twice.");
             }
 
             return canJoin;
