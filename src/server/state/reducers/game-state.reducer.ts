@@ -4,7 +4,6 @@ import { GameAction } from "dci-game-server";
 import * as fromActions from "../actions";
 import { GameEngine } from "../../core/game-engine";
 import { ExplosionInformation } from "../../models/explosion-information";
-import { stat } from "fs";
 
 export interface GameState {
     gameId: string;
@@ -17,6 +16,7 @@ export interface GameState {
     hasStarted: boolean;
     time: number;
     winner: PlayerId;
+    maxPlayerCount: number;
 }
 
 function createDefaultGameMap(): GameMap {
@@ -36,7 +36,8 @@ export const defaultGameState: GameState = {
     isOver: false,
     hasStarted: false,
     time: 0,
-    winner: null
+    winner: null,
+    maxPlayerCount: 4
 };
 
 export function gameStateReducer(state = defaultGameState, action: GameAction) {
@@ -86,21 +87,30 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
             };
         }
         case fromActions.LEAVE_GAME: {
+            // If the game has already started, leave the player in the game since he can rejoin at any time.
+            if(state.hasStarted) {
+                return state;
+            }
+
+            // Else, we remove the player from the list of players.
             const playerId: PlayerId = action.payload;
-            // We remove the player from the list of players.
             const {[playerId]: playerThatLeft, ...remainingPlayers} = state.players;
+
+            /*
+            THIS CODE ALLOWS A PLAYER TO WIN WHEN ALL OTHER PLAYERS HAVE LEFT THE GAME.
+            It is not needed for the moment.
 
             let winner: PlayerId = null;
             if(state.hasStarted) {
                 const remainingPlayersIds = Object.keys(remainingPlayers);
                 winner = remainingPlayersIds.length === 1 ? remainingPlayersIds[0] : null;
-            }
+            }*/
 
             return {
                 ...state,
                 players: remainingPlayers,
-                winner,
-                isOver: winner !== null
+                /*winner,
+                isOver: winner !== null*/
             };
         }
         case fromActions.UPDATE_MOVEMENT: {
@@ -321,6 +331,14 @@ export function gameStateReducer(state = defaultGameState, action: GameAction) {
                 bombs: updatedBombs,
                 collectibles: updatedCollectibles
             };
+        }
+        case fromActions.GAME_OVER: {
+            console.log("GAME OVER");
+            return state;
+        }
+        case fromActions.PLAYER_HAS_WON: {
+            console.log("PLAYER_HAS_WON");
+            return state;
         }
 
         default:

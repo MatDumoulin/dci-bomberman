@@ -34,6 +34,8 @@ export const PLAYER_DIED = "[Player] Is dead";
 export const PLAYER_HAS_WON = "[Player] Has won the game";
 
 export const GAME_STATE_CHANGED = "[Game] state has changed";
+export const GAME_OVER = "[Game] is over";
+export const GAME_IS_FULL = "[Game] is full";
 
 // Action class implementation
 export class InitGame {
@@ -215,6 +217,22 @@ export class GameStateChanged {
   }
 }
 
+export class GameOver {
+  static create(): GameAction {
+    return {
+      type: GAME_OVER
+    };
+  }
+}
+
+export class GameIsFull {
+  static create(): GameAction {
+    return {
+      type: GAME_IS_FULL
+    };
+  }
+}
+
 export type BombermanAction =
   | JoinGame
   | GameJoined
@@ -233,4 +251,5 @@ export type BombermanAction =
   | PlayerDamaged
   | PlayerDied
   | PlayerHasWon
-  | GameStateChanged;
+  | GameStateChanged
+  | GameOver;

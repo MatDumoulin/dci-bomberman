@@ -1,8 +1,9 @@
+import * as Timer from "@gamestdio/timer";
 import * as fromState from "../state";
 import * as fromServer from 'dci-game-server';
 import { Unsubscribe, Store } from "redux";
 import { PlayerActionWrapper, PlayerId } from "../models";
-import * as Timer from "@gamestdio/timer";
+import { ProcessManager } from "./process-manager";
 
 /**
  * This class manages the game loop as well as to restart and pause the game.
@@ -14,10 +15,12 @@ export class GameManager {
     private _unsubscribeFromStore: Unsubscribe;
     private _timer: Timer.default;
     private _gameloop: Timer.Delayed;
+    private _maxPlayerCount: number;
 
-    constructor(store: Store<fromState.State, fromServer.GameAction>) {
+    constructor(store: Store<fromState.State, fromServer.GameAction>, maxPlayerCount: number) {
         // Initializes the store
         this._store = store;
+        this._maxPlayerCount = maxPlayerCount;
         // And retrieves the state whenever it changes.
         this._unsubscribeFromStore = this._store.subscribe(() => {
             this._currentGameState = this._store.getState().gameState;
@@ -75,22 +78,40 @@ export class GameManager {
         }
     }
 
+    fillGameWithBots(): void {
+        const playerIds = Object.keys(this._currentGameState.players);
+        // If the current game is not full
+        if(playerIds.length < this._maxPlayerCount) {
+            // Fill the game with bots.
+            const missingPlayerCount = this._maxPlayerCount - playerIds.length;
+
+            for(let i = 0; i < missingPlayerCount; ++i) {
+                ProcessManager.spawnBot();
+            }
+        }
+    }
+
     addPlayer(playerId: PlayerId) {
         this._store.dispatch(fromState.JoinGame.create(playerId));
     }
 
-    removePlayer(playerId: PlayerId) {
+    removePlayer(playerId: PlayerId): void {
+        // If the game is over, leave the state as is.
+        if(this._currentGameState.isOver) {
+            return;
+        }
+
         this._store.dispatch(fromState.LeaveGame.create(playerId));
 
         if(this._currentGameState.hasStarted) {
-            console.log("The player ", playerId, " has left the game. Stopping the game.");
-            this.stopGame();
+            console.log("The player ", playerId, " has left the game.");
         }
     }
 
     updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
         // Only update the actions of the player if the game has started, he's in the game and he is alive.
         if(this._currentGameState.hasStarted &&
+            !this._currentGameState.isOver &&
             this._currentGameState.players[playerActionWrapper.playerId] !== undefined &&
             this._currentGameState.players[playerActionWrapper.playerId].isAlive) {
 
@@ -100,7 +121,7 @@ export class GameManager {
 
     private gameTick() {
         // If there is a winner, stop the game.
-        if(this._currentGameState.winner !== null) {
+        if(this._currentGameState.winner !== null || this._currentGameState.isOver) {
             this.stopGame();
             return;
         }
