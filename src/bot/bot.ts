@@ -38,6 +38,13 @@ room.listen("hasStarted", (change: DataChange) => {
     }
 });
 
+room.listen("isOver", (change: DataChange) => {
+    if(change.value === true) {
+        console.log("Game is over.");
+        cleanUpResources();
+    }
+});
+
 function sendRandomMoves() {
     interval = setInterval(() => {
         const randomMove = Math.floor(Math.random() * 5);
@@ -70,9 +77,13 @@ function sendRandomMoves() {
     }, 3000);
 }
 
-function cleanUpResources(ex: any) {
-    console.error(ex);
+function cleanUpResources(ex?: any) {
+    if(ex) {
+        console.error(ex);
+    }
+
     console.log("Cleaning up resources...");
+
     if(interval) {
         clearInterval(interval);
     }
@@ -80,6 +91,8 @@ function cleanUpResources(ex: any) {
     if(room && room.hasJoined) {
         room.leave();
     }
+
+    process.exit();
 }
 
 
