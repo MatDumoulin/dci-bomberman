@@ -1,22 +1,19 @@
 import { Room, Client } from "colyseus";
-import { Unsubscribe, Store } from "redux";
 
 import { CliManager } from "../cli/cli";
 import { GameManager } from "../core";
 import { Message } from "../comm";
 
-import * as fromState from "../state";
-import * as fromServer from 'dci-game-server';
 import { JoinRoomOptions } from "./join-room.options";
 import { RoomLogger } from "../core/loggers";
+import { GameState, GameStateImpl } from "../state";
 
 /**
  * This class handles all of the communication with the user.
  */
-export class RoomHandler extends Room<fromState.GameState> {
+export class RoomHandler extends Room<GameState> {
     private _gameManager: GameManager;
-    private _store: Store<fromState.State, fromServer.GameAction>;
-    private _unsubscribeFromStore: Unsubscribe;
+    private _gameState: GameState;
     private _logger: RoomLogger;
     private _viewers: Set<string>;
     cli: CliManager;
@@ -27,13 +24,13 @@ export class RoomHandler extends Room<fromState.GameState> {
 
     // When room is initialized
     onInit (options: any) {
-        this._store = fromState.createStore(this.roomId);
-        this._gameManager = new GameManager(this._store, this.maxClients);
+        this._gameState = new GameStateImpl(this.roomId);
+        this._gameManager = new GameManager(this._gameState, this.maxClients);
         this.cli = new CliManager(this._gameManager);
         this._logger = new RoomLogger(this.roomId);
         this._viewers = new Set<string>();
-
-        this.setState(this._store.getState().gameState);
+        this.state = {} as GameState;
+        this.updateRoomState(this._gameState);
         this.listenForStateChange();
     }
 
@@ -49,11 +46,11 @@ export class RoomHandler extends Room<fromState.GameState> {
             }
 
             const isRoomFull = this.hasReachedMaxClients() && !this.hasReservedSeat(options.sessionId);
-            const isPlayerAlreadyInRoom = this.state.players[options.playerId] !== undefined;
-            const doPlayerWantsToRejoin = this.state.hasStarted && isPlayerAlreadyInRoom && this.clients.findIndex(socket => socket.id === options.clientId) === -1;
-            const canJoin = (!isRoomFull && !this.state.hasStarted && !isPlayerAlreadyInRoom) || doPlayerWantsToRejoin;
+            const isPlayerAlreadyInRoom = this._gameState.players[options.playerId] !== undefined;
+            const doPlayerWantsToRejoin = this._gameState.hasStarted && isPlayerAlreadyInRoom && this.clients.findIndex(socket => socket.id === options.clientId) === -1;
+            const canJoin = (!isRoomFull && !this._gameState.hasStarted && !isPlayerAlreadyInRoom) || doPlayerWantsToRejoin;
 
-            if(this.state.hasStarted) {
+            if(this._gameState.hasStarted) {
                 // If the player is player in the current game but has left the game, allow him to rejoin.
                 if(doPlayerWantsToRejoin) {
                     this._logger.log("The user is rejoining the game since he left previously.");
@@ -81,7 +78,15 @@ export class RoomHandler extends Room<fromState.GameState> {
         // If the client is a player, add him to the game.
         if(!this._viewers.has(client.id)) {
             this._logger.log("The client ", client.id, " has joined the game.");
-            this._gameManager.addPlayer(client.id);
+            const didJoinSucceed = this._gameManager.addPlayer(client.id);
+
+            if(!didJoinSucceed) {
+                this._logger.log(`The player with id ${client.id} was not able to join the game even though he was admitted by the requestJoin() of the room.`);
+            }
+
+            if(this._gameState.isGameFull()) {
+                this._gameManager.startGame();
+            }
         }
         // Else, for viewers, colyseus will handle state emission automatically.
     }
@@ -94,8 +99,10 @@ export class RoomHandler extends Room<fromState.GameState> {
         }
         // If he is a player, remove him from the game.
         else {
-            this._logger.log("The client ", client.id, " has left the game.");
             this._gameManager.removePlayer(client.id);
+            if(this._gameState.hasStarted) {
+                this._logger.log("The player ", client.id, " has left the game.");
+            }
         }
     }
 
@@ -110,40 +117,34 @@ export class RoomHandler extends Room<fromState.GameState> {
     // Cleanup callback, called after there are no more clients in the room. (see `autoDispose`)
     onDispose () {
         this._logger.log("Cleaning up room...");
-        this._unsubscribeFromStore();
-        this._gameManager.cleanUpResources();
+        this._gameState.cleanUpRessources();
         this.cli.cleanUpResources();
     }
 
     private listenForStateChange() {
-        // Whenever the state changes, notify the players.
-        this._unsubscribeFromStore = this._store.subscribe(() => {
-            const state = this._store.getState();
-            if(state.lastAction) {
-                if(state.lastAction.type === fromState.GAME_STATE_CHANGED) {
-                    // Do not override the this.state variable here. We can only mutate it
-                    // has this is how colyseus handles state updates.
-                    this.state.bombs = state.gameState.bombs;
-                    this.state.gameId = state.gameState.gameId;
-                    this.state.gameMap = state.gameState.gameMap;
-                    this.state.hasStarted = state.gameState.hasStarted;
-                    this.state.isOver = state.gameState.isOver;
-                    this.state.paused = state.gameState.paused;
-                    this.state.players = state.gameState.players;
-                    this.state.time = state.gameState.time;
-                    this.state.winner = state.gameState.winner;
-                    this.state.collectibles = state.gameState.collectibles;
-
-                    if(this.state.isOver) {
-                        console.log("Game is over! Blocking all incoming actions.");
-                        // Wait for clients to handle end of game properly, then close the room.
-                        setTimeout(() => this.disconnect(), 2000);
-                    }
-                }
-                else if(state.lastAction.type === fromState.GAME_IS_FULL) {
-                    this._gameManager.startGame();
-                }
-            }
+        // Listen for specific events from the state.
+        this._gameState.onGameOver().subscribe(() => {
+            console.log("Game is over! Blocking all incoming actions.");
+            // Wait for clients to handle end of game properly, then close the room.
+            setTimeout(() => this.disconnect(), 2000);
         });
+
+        this._gameState.onStateChanged().subscribe(() => {
+            this.updateRoomState(this._gameState);
+        });
+    }
+
+    private updateRoomState(gameState: GameState): void {
+        this.state.gameId = gameState.gameId;
+        this.state.gameMap = gameState.gameMap;
+        this.state.players = gameState.players;
+        this.state.bombs = gameState.bombs;
+        this.state.collectibles = gameState.collectibles;
+        this.state.paused = gameState.paused;
+        this.state.isOver = gameState.isOver;
+        this.state.hasStarted = gameState.hasStarted;
+        this.state.time = gameState.time;
+        this.state.winner = gameState.winner;
+        this.state.maxPlayerCount = gameState.maxPlayerCount;
     }
 }

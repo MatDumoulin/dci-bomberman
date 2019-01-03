@@ -18,7 +18,7 @@ export class GameEngine {
      * This functions tries to move the player to the given position.
      * If the position is not valid, the position of the player is not updated.
      */
-    static movePlayerTo(state: GameState, player: Player, newPos: Point): Player {
+    static movePlayerTo(state: GameState, player: Player, newPos: Point): void {
         // Then, we compute the new position of the player (if no collision).
         const left = newPos.x;
         const top = newPos.y;
@@ -37,12 +37,10 @@ export class GameEngine {
             topRightTile !== OUT_OF_BOUND && topRightTile.info.type === ObjectType.Walkable &&
             bottomLeftTile !== OUT_OF_BOUND && bottomLeftTile.info.type === ObjectType.Walkable &&
             bottomRightTile !== OUT_OF_BOUND && bottomRightTile.info.type === ObjectType.Walkable) {
-            
+
             const newPosition = new Point(left, top);
 
-            return {...player, coordinates: newPosition };
+            player.coordinates = newPosition;
         }
-
-        return player;
     }
 }

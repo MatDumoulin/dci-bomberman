@@ -15,7 +15,7 @@ export abstract class Upgrade extends GameObject {
         this.coordinates = tile.info.coordinates;
     }
 
-    abstract apply(player: Player): Player;
+    abstract apply(player: Player): void;
 }
 
 export class PowerUp extends Upgrade {
@@ -27,11 +27,8 @@ export class PowerUp extends Upgrade {
         super(tile);
     }
 
-    apply(player: Player): Player {
-        return {
-            ...player,
-            bombPower: player.bombPower + 1
-        };
+    apply(player: Player): void {
+        ++player.bombPower;
     }
 }
 
@@ -44,11 +41,8 @@ export class BombUp extends Upgrade {
         super(tile);
     }
 
-    apply(player: Player): Player {
-        return {
-            ...player,
-            maxBombCount: player.maxBombCount + 1
-        };
+    apply(player: Player): void {
+        ++player.maxBombCount;
     }
 }
 
@@ -61,10 +55,7 @@ export class SpeedUp extends Upgrade {
         super(tile);
     }
 
-    apply(player: Player): Player {
-        return {
-            ...player,
-            speed: player.speed + 1
-        };
+    apply(player: Player): void {
+        ++player.speed;
     }
 }

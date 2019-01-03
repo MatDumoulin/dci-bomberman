@@ -1,4 +1,4 @@
-import { ObjectType, MapDescriptor, Point } from "../../models";
+import { ObjectType, MapDescriptor, Point } from "../models";
 
 const Walkable = ObjectType.Walkable; // To make it easier to read.
 const Wall = ObjectType.Wall;

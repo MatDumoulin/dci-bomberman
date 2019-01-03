@@ -29,12 +29,9 @@
   "dependencies": {
     "colyseus": "^0.9.19",
     "colyseus.js": "^0.9.15",
-    "dci-game-server": "0.0.9",
     "express": "^4.16.3",
     "minimist": "^1.2.0",
     "node-gameloop": "^0.1.4",
-    "redux": "^4.0.0",
-    "redux-observable": "^1.0.0",
     "rxjs": "^6.3.1",
     "socket.io": "^2.1.1",
     "socket.io-client": "^2.1.1",
