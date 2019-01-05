@@ -40,6 +40,13 @@ export class RoomHandler extends Room<EmittedGameState> {
     requestJoin(options: JoinRoomOptions, isNew: boolean): boolean {
         this._logger.log(`User ${options.playerId ? options.playerId : options.clientId} wants to join the game as a ${options.isPlaying ? 'player': 'viewer'}.`);
 
+        // First of, some user may want to join specific rooms. If it is the case, check if the current room is the wanted one.
+        // The this.clients.length > 0 condition was added because a room is destroyed if no one is watching and viewer tries to
+        // play in the room.
+        if(options.roomToJoin && options.roomToJoin !== this.roomId && this.clients.length > 0) {
+            return false; // This is not the room that the user wants.
+        }
+
         // If the user wants to play the game, check if the room is full.
         if(options.isPlaying) {
             // If the player was previously viewing the game, remove him from the list of viewers.
