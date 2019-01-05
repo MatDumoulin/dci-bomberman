@@ -47,3 +47,18 @@ export interface GameState {
 
     cleanUpRessources(): void;
 }
+
+
+export interface EmittedGameState {
+    gameId: string;
+    gameMap: GameMap;
+    players: { [id: string]: Player };
+    bombs: { [id: string]: Bomb };
+    collectibles: Upgrade[];
+    paused: boolean;
+    isOver: boolean;
+    hasStarted: boolean;
+    time: number;
+    winner: PlayerId;
+    maxPlayerCount: number;
+}

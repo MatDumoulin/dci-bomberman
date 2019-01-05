@@ -43,8 +43,8 @@ export class Logger {
 }
 
 export class RoomLogger extends Logger {
-    constructor(roomId: string) {
-        super(`[ROOM ${roomId}]`);
+    constructor(roomId: string, logFileName: string) {
+        super(`[ROOM ${roomId}]`, logFileName);
     }
 }
 

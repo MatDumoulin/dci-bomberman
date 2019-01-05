@@ -61,7 +61,7 @@ export class GameStateImpl implements GameState {
         // First, we create a copy of the player map and add our player.
         const currentNumberOfPlayer = Object.keys(this.players).length + 1;
         // If the game is full, the player cannot join the game.
-        if(currentNumberOfPlayer >= this.maxPlayerCount) {
+        if(currentNumberOfPlayer > this.maxPlayerCount) {
             return false;
         }
 
@@ -224,20 +224,6 @@ export class GameStateImpl implements GameState {
         // it provides us the list of cells that are now contained in the explosion.
         const affectedCells = this.getExplosionImpactOnMap(this.gameMap, bomb, this.time);
 
-        // From this list, we get the updated map.
-        let tile: Tile;
-        let explosionEffectOnTile: ExplosionInformation;
-        for(let row = 0; row < this.gameMap.getHeight(); ++row) {
-            for(let col = 0; col < this.gameMap.getWidth(); ++col) {
-                tile = this.gameMap.get(row, col);
-                explosionEffectOnTile = affectedCells.find(affected => affected.row === row && affected.col === col);
-
-                if(explosionEffectOnTile !== undefined) {
-                    // Assigns all values of the explosion effect to the tile.
-                    Object.assign(tile, explosionEffectOnTile.after);
-                }
-            }
-        }
 
         // From this list we add the new collectibles to the collectible list.
         // When no collectibles were dropped by the bomb explosion, the collectible value is set to null.
@@ -258,10 +244,18 @@ export class GameStateImpl implements GameState {
             ...newCollectibles
         ];
 
+
+        // Then, from the same list, we get the updated map.
+        let tile: Tile;
+        for(const explosionOnTile of affectedCells) {
+            tile = this.gameMap.get(explosionOnTile.row, explosionOnTile.col);
+            // Assigns all values of the explosion effect to the tile.
+            Object.assign(tile, explosionOnTile.after);
+        }
+
         // Then, we remove the bomb from the player that planted it.
         // We let a grace period of one game tick to the players to check if there are killed by the explosion.
         this.players[bomb.plantedBy].bombs = this.players[bomb.plantedBy].bombs.filter(bombOfPlayer => bombOfPlayer.id !== bomb.id);
-
 
         // Finally, we remove the bomb from the list of bombs.
         delete this.bombs[bomb.id];
@@ -369,7 +363,11 @@ export class GameStateImpl implements GameState {
                         upgrade = this.generateUpgrade(tile);
                     }
 
-                    after.info.type = ObjectType.Walkable;
+                    after.info = {
+                        ...tile.info,
+                        type: ObjectType.Walkable
+                    };
+
                     after.collectible = upgrade;
 
                     mapTransformation.push(new ExplosionInformation(probedRow, probedCol, tile, after));

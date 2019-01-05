@@ -1,14 +1,27 @@
 import { createServer } from 'http';
-import { Server } from "colyseus";
+import { RedisPresence, Server } from "colyseus";
+import { config } from './server.config';
 import { RoomHandler } from './rooms';
+
 const minimist = require('minimist');
 
 const http = createServer();
 const gameServer = new Server({
-    server: http
+    server: http,
+    presence: new RedisPresence({
+        host: config.redisHost,
+        port: config.redisPort
+    })
 });
 
-gameServer.register("dci", RoomHandler);
+
+gameServer.register("dci", RoomHandler).
+      on("create", (room) => console.log("Room created:", room.roomId)).
+      on("dispose", (room) => console.log("Room disposed:", room.roomId)).
+      on("join", (room, client) => console.log("User", client.id, "joined room", room.roomId)).
+      on("leave", (room, client) => console.log("User", client.id, "left room", room.roomId));
+
+
 
 // Parsing the given arguments in order to configure the server.
 /**

@@ -12,10 +12,8 @@ export class GameManager {
     private _gameState: fromState.GameState;
     private _timer: Timer.default;
     private _gameloop: Timer.Delayed;
-    private _maxPlayerCount: number;
 
-    constructor(gameState: GameState, maxPlayerCount: number) {
-        this._maxPlayerCount = maxPlayerCount;
+    constructor(gameState: GameState) {
         this._gameState = gameState;
     }
 
@@ -65,11 +63,11 @@ export class GameManager {
     }
 
     fillGameWithBots(): void {
-        const playerIds = Object.keys(this._gameState.players);
+        const numberOfPlayersInGame = Object.keys(this._gameState.players).length;
         // If the current game is not full
-        if(playerIds.length < this._maxPlayerCount) {
+        if(numberOfPlayersInGame < this._gameState.maxPlayerCount) {
             // Fill the game with bots.
-            const missingPlayerCount = this._maxPlayerCount - playerIds.length;
+            const missingPlayerCount = this._gameState.maxPlayerCount - numberOfPlayersInGame;
 
             for(let i = 0; i < missingPlayerCount; ++i) {
                 ProcessManager.spawnBot();

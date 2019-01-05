@@ -6,18 +6,17 @@ import { Message } from "../comm";
 
 import { JoinRoomOptions } from "./join-room.options";
 import { RoomLogger } from "../core/loggers";
-import { GameState, GameStateImpl } from "../state";
+import { GameState, GameStateImpl, EmittedGameState } from "../state";
 
 /**
  * This class handles all of the communication with the user.
  */
-export class RoomHandler extends Room<GameState> {
+export class RoomHandler extends Room<EmittedGameState> {
     private _gameManager: GameManager;
     private _gameState: GameState;
     private _logger: RoomLogger;
     private _viewers: Set<string>;
     cli: CliManager;
-    maxClients = 4;
 
     // Authorize client based on provided options before WebSocket handshake is complete
     // onAuth (options: any) { }
@@ -25,12 +24,15 @@ export class RoomHandler extends Room<GameState> {
     // When room is initialized
     onInit (options: any) {
         this._gameState = new GameStateImpl(this.roomId);
-        this._gameManager = new GameManager(this._gameState, this.maxClients);
+        this._gameManager = new GameManager(this._gameState);
         this.cli = new CliManager(this._gameManager);
-        this._logger = new RoomLogger(this.roomId);
         this._viewers = new Set<string>();
-        this.state = {} as GameState;
-        this.updateRoomState(this._gameState);
+
+        const state = {} as EmittedGameState;
+        this.assignRoomState(state, this._gameState);
+        this.setState(state);
+
+        this.initLogger();
         this.listenForStateChange();
     }
 
@@ -45,9 +47,11 @@ export class RoomHandler extends Room<GameState> {
                 this._viewers.delete(options.clientId);
             }
 
-            const isRoomFull = this.hasReachedMaxClients() && !this.hasReservedSeat(options.sessionId);
+            const numberOfPlayersInGame = Object.keys(this._gameState.players).length;
+
+            const isRoomFull = this._gameState.maxPlayerCount <= numberOfPlayersInGame;
             const isPlayerAlreadyInRoom = this._gameState.players[options.playerId] !== undefined;
-            const doPlayerWantsToRejoin = this._gameState.hasStarted && isPlayerAlreadyInRoom && this.clients.findIndex(socket => socket.id === options.clientId) === -1;
+            const doPlayerWantsToRejoin = this._gameState.hasStarted && isPlayerAlreadyInRoom && this.clients.findIndex(socket => socket.id === options.playerId || socket.id === options.clientId) === -1;
             const canJoin = (!isRoomFull && !this._gameState.hasStarted && !isPlayerAlreadyInRoom) || doPlayerWantsToRejoin;
 
             if(this._gameState.hasStarted) {
@@ -134,17 +138,28 @@ export class RoomHandler extends Room<GameState> {
         });
     }
 
+
     private updateRoomState(gameState: GameState): void {
-        this.state.gameId = gameState.gameId;
-        this.state.gameMap = gameState.gameMap;
-        this.state.players = gameState.players;
-        this.state.bombs = gameState.bombs;
-        this.state.collectibles = gameState.collectibles;
-        this.state.paused = gameState.paused;
-        this.state.isOver = gameState.isOver;
-        this.state.hasStarted = gameState.hasStarted;
-        this.state.time = gameState.time;
-        this.state.winner = gameState.winner;
-        this.state.maxPlayerCount = gameState.maxPlayerCount;
+        this.assignRoomState(this.state, gameState);
+    }
+
+    private assignRoomState(target: EmittedGameState, gameState: GameState): void {
+        target.gameId = gameState.gameId;
+        target.gameMap = gameState.gameMap;
+        target.players = gameState.players;
+        target.bombs = gameState.bombs;
+        target.collectibles = gameState.collectibles;
+        target.paused = gameState.paused;
+        target.isOver = gameState.isOver;
+        target.hasStarted = gameState.hasStarted;
+        target.time = gameState.time;
+        target.winner = gameState.winner;
+        target.maxPlayerCount = gameState.maxPlayerCount;
+    }
+
+    private initLogger() {
+        const currentTime = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+        this._logger = new RoomLogger(this.roomId, this.roomId + "&" + currentTime);
+        this._logger.log('THESE ARE THE LOGS FROM ROOM ID:', this.roomId);
     }
 }
