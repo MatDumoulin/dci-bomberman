@@ -58,7 +58,10 @@ export class GameStateImpl implements GameState {
      * @returns True if the player was able to join the game, false otherwise.
      */
     joinGame(playerId: PlayerId): boolean {
-        // First, we create a copy of the player map and add our player.
+        if(this.players[playerId]) {
+            return true; // The player is rejoining the game.
+        }
+
         const currentNumberOfPlayer = Object.keys(this.players).length + 1;
         // If the game is full, the player cannot join the game.
         if(currentNumberOfPlayer > this.maxPlayerCount) {
