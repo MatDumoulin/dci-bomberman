@@ -8,6 +8,11 @@ import { JoinRoomOptions } from "./join-room.options";
 import { RoomLogger } from "../core/loggers";
 import { GameState, GameStateImpl, EmittedGameState } from "../state";
 import { PlayerId } from "../models";
+import { RedisAdapter } from "../../core";
+
+export interface RoomHandlerOptions {
+    customPresence?: RedisAdapter;
+}
 
 /**
  * This class handles all of the communication with the user.
@@ -18,13 +23,14 @@ export class RoomHandler extends Room<EmittedGameState> {
     private _logger: RoomLogger;
     private _viewers: Set<string>;
     private _playerClientMapping: Map<string, PlayerId>;
+    private _customPresence: RedisAdapter;
     cli: CliManager;
 
     // Authorize client based on provided options before WebSocket handshake is complete
     // onAuth (options: any) { }
 
     // When room is initialized
-    onInit (options: any) {
+    onInit (options: RoomHandlerOptions) {
         this._gameState = new GameStateImpl(this.roomId);
         this._gameManager = new GameManager(this._gameState);
         this.cli = new CliManager(this._gameManager);
@@ -37,6 +43,8 @@ export class RoomHandler extends Room<EmittedGameState> {
 
         this.initLogger();
         this.listenForStateChange();
+        // We are using a custom presence since the Presence api given by Colyseus is too restricted.
+        this._customPresence = options.customPresence;
     }
 
     // Checks if a new client is allowed to join.
@@ -156,6 +164,7 @@ export class RoomHandler extends Room<EmittedGameState> {
     private listenForStateChange() {
         // Listen for specific events from the state.
         this._gameState.onGameOver().subscribe(() => {
+            this.addWinnerToLeaderboard(this._gameState.winner);
             console.log("Game is over! Blocking all incoming actions.");
             // Wait for clients to handle end of game properly, then close the room.
             setTimeout(() => this.disconnect(), 2000);
@@ -189,5 +198,15 @@ export class RoomHandler extends Room<EmittedGameState> {
         const currentTime = new Date().toISOString().replace(/:/g, '-').split('.')[0];
         this._logger = new RoomLogger(this.roomId, this.roomId + "&" + currentTime);
         this._logger.log('THESE ARE THE LOGS FROM ROOM ID:', this.roomId);
+    }
+
+    private addWinnerToLeaderboard(winner: PlayerId) {
+        if(this._customPresence && winner) {
+            this._customPresence.hIncr("stats:winner", winner)
+                .then(numberOfGamesWonByPlayer => {
+                    const payload = {player: winner, value: numberOfGamesWonByPlayer};
+                    this._customPresence.publish("stats:winner", JSON.stringify(payload));
+                });
+        }
     }
 }

@@ -2,7 +2,7 @@
 This is a game server for a custom version of bomberman. This game is meant to be played by bots or AI through web sockets. 
 
 ## To get started
-Before you begin, this game server uses **Redis** to allow vertical scaling. Thus, a Redis instance must first be available in order to use the server. By default, the server expects the Redis instance to run on *localhost:6379*. You can change the expected location of the Redis instance on the *src/server/server.config.ts* file. You will then need to compile the server and restart it.
+Before you begin, this game server uses **Redis** to allow vertical scaling. Thus, a Redis instance must first be available in order to use the server. By default, the server expects the Redis instance to run on *localhost:6379*. You can change the expected location of the Redis instance on the *src/global.config.ts* file. You will then need to compile the server and restart it.
 
 To run the server, you must first transpile(compile) the TypeScript code into JavaScript with `npm run build`. Then, on another command line, you can run the server with the `npm start` command.
 
