@@ -6,8 +6,9 @@
   "scripts": {
     "build": "rm -rf dist && tsc -w",
     "start": "npm run server",
-    "server": "nodemon dist/server/server.js --port 3000",
-    "bot": "node dist/bot/bot.js --server localhost:3000",
+    "server": "nodemon dist/server/server.js",
+    "bot": "node dist/bot/bot.js",
+    "leaderboard": "node dist/leaderboard/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -29,12 +30,10 @@
   "dependencies": {
     "colyseus": "^0.9.19",
     "colyseus.js": "^0.9.15",
-    "dci-game-server": "0.0.9",
     "express": "^4.16.3",
     "minimist": "^1.2.0",
     "node-gameloop": "^0.1.4",
-    "redux": "^4.0.0",
-    "redux-observable": "^1.0.0",
+    "redis": "^2.8.0",
     "rxjs": "^6.3.1",
     "socket.io": "^2.1.1",
     "socket.io-client": "^2.1.1",

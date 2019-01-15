@@ -1,4 +1,2 @@
-export * from './actions';
-export * from './effects';
-export * from './reducers';
-export * from './store-creater';
+export * from './game-state';
+export * from './game-state.interface';

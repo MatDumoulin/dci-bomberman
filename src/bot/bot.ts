@@ -2,6 +2,7 @@ require("./colyseusjs.polyfill");
 
 import { Client, DataChange } from "colyseus.js";
 import { PlayerAction } from "../server/models";
+import { config } from '../global.config';
 const minimist = require('minimist');
 const uuid = require('uuid/v4');
 
@@ -12,7 +13,7 @@ console.log((global as any).WebSocket);
  * --port: The port that this server will listen on.
  */
 const args = minimist(process.argv.slice(2)); // The first 2 arguments are useless.
-const serverUrl = args.server || "localhost:3000";
+const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
 
 console.log(serverUrl);
 
