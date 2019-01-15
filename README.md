@@ -18,5 +18,8 @@ By default, the port used will be displayed in the terminal once the server is u
 ## Now that everything is set up, how can I view a game?
 The web server to view a game is on [a separate Git repository](https://github.com/kingbaub3/dci-bomberman-viewer).
 
+## Help, the leaderboard is not working!
+The leaderboard server needs to be started independently from the game server. To start the leaderboard server, run `npm run leaderboard` in a terminal. The leaderboard is on a separate server to allow vertical scaling of the application and to lower the load on a single server.
+
 ## For more information
 This game server uses Colyseus, a game server library. For more information on Colyseus, see [the official Colyseus Website](https://colyseus.io/).
