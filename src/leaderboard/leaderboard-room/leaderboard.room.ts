@@ -23,7 +23,7 @@ export class LeaderboardRoom extends Room<BombermanStats> {
         this.getAllStats()
             .then(state => {
                 this.setState(state);
-                console.log(this.state);
+                // console.log(this.state);
                 this.subscribeToStats();
             })
             .catch(err => console.log("Unable to fetch the initial state:", err));

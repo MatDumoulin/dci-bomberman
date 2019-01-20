@@ -74,8 +74,13 @@ export class RedisAdapter {
 
     subscribe(key: string): void {
         this._redis.subscribe(key, (err: Error, result: string) => {
-            console.log("Error:", err);
-            console.log("Result:", result);
+            if(err) {
+                console.log("Error:", err);
+            }
+
+            if(result) {
+                console.log("The following field was updated:", result);
+            }
         });
     }
 
@@ -83,9 +88,9 @@ export class RedisAdapter {
         this._redis.unsubscribe(key);
     }
 
-    private enableRealTimeStorage(): void {
+/*     private enableRealTimeStorage(): void {
         this._redis.on("ready", () => {
             this._redis.config("SET", "notify-keyspace-events", "AKE");
         });
-    }
+    } */
 }
