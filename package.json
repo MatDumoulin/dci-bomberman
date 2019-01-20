@@ -8,7 +8,7 @@
     "start": "npm run server",
     "server": "nodemon dist/server/server.js",
     "bot": "node dist/bot/bot.js",
-    "leaderboard": "node dist/leaderboard/server.js",
+    "leaderboard": "nodemon dist/leaderboard/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

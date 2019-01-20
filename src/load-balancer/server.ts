@@ -1,7 +1,6 @@
 import { createServer } from 'http';
 import { RedisPresence, Server } from "colyseus";
 import { config } from '../global.config';
-import { LeaderboardRoom, LeaderboardRoomOptions } from './leaderboard-room';
 
 const http = createServer();
 const gameServer = new Server({
@@ -12,7 +11,7 @@ const gameServer = new Server({
     })
 });
 
-const leaderboardOptions: LeaderboardRoomOptions = {
+/* const leaderboardOptions: LeaderboardRoomOptions = {
     storageHost: config.redisHost,
     storagePort: config.redisPort
 };
@@ -22,14 +21,14 @@ gameServer.register("leaderboard", LeaderboardRoom, leaderboardOptions).then(han
     .on("join", (room, client) => console.log("User", client.id, "joined leaderboard", room.roomId))
     .on("leave", (room, client) => console.log("User", client.id, "left leaderboard", room.roomId))
 );
-
+ */
 
 const PORT = config.leaderboardPort;
 http.listen(PORT, () => {
     console.log(`Leaderboard is listening on port ${PORT}`);
 });
 
-gameServer.matchMaker.create("leaderboard", leaderboardOptions);
+/* gameServer.matchMaker.create("leaderboard", leaderboardOptions); */
 
 // Cleaning up all the resources used by the server.
 function cleanUpResources() {
