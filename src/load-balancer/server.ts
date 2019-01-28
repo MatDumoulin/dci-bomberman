@@ -1,54 +1,45 @@
-import { createServer } from 'http';
-import { RedisPresence, Server } from "colyseus";
-import { config } from '../global.config';
+require("../core/colyseusjs.polyfill");
 
-const http = createServer();
-const gameServer = new Server({
-    server: http,
-    presence: new RedisPresence({
-        host: config.redisHost,
-        port: config.redisPort
-    })
+import express, { Response, Request } from "express";
+import bodyParser from "body-parser";
+
+import { config } from "../global.config";
+import { ServerConnected, ServerDisconnected } from "./routes";
+import { ServerManager } from "./managers";
+
+const app = express();
+
+// Parsing all request bodies into json.
+app.use(bodyParser.json());
+
+const PORT = config.loadBalancerPort;
+
+app.listen(PORT, () => {
+    console.log(`Load balancer is listening on port ${PORT}`);
 });
 
-/* const leaderboardOptions: LeaderboardRoomOptions = {
-    storageHost: config.redisHost,
-    storagePort: config.redisPort
-};
-gameServer.register("leaderboard", LeaderboardRoom, leaderboardOptions).then(handler => handler
-    .on("create", (room) => console.log("Leaderboard room created:", room.roomId))
-    .on("dispose", (room) => console.log("Leaderboard room disposed:", room.roomId))
-    .on("join", (room, client) => console.log("User", client.id, "joined leaderboard", room.roomId))
-    .on("leave", (room, client) => console.log("User", client.id, "left leaderboard", room.roomId))
-);
- */
+app.get("/connect", ServerConnected);
+app.get("/disconnect", ServerDisconnected);
+app.get("/update", ServerDisconnected);
 
-const PORT = config.leaderboardPort;
-http.listen(PORT, () => {
-    console.log(`Leaderboard is listening on port ${PORT}`);
+app.get("*", (req: Request, res: Response) => {
+    res.status(200).send("Welcole to the load balancer!");
 });
-
-/* gameServer.matchMaker.create("leaderboard", leaderboardOptions); */
 
 // Cleaning up all the resources used by the server.
 function cleanUpResources() {
-    console.log("Leaderboard is closed.");
-    http.close();
+    ServerManager.cleanUp();
 }
 
-gameServer.onShutdown(cleanUpResources);
+// do something when app is closing
+process.on("exit", cleanUpResources);
 
-//do something when app is closing
-/*process.on('exit', cleanUpResources);
-
-//catches ctrl+c event
-process.on('SIGINT', cleanUpResources);
+// catches ctrl+c event
+process.on("SIGINT", cleanUpResources);
 
 // catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', cleanUpResources);
-process.on('SIGUSR2', cleanUpResources);
+process.on("SIGUSR1", cleanUpResources);
+process.on("SIGUSR2", cleanUpResources);
 
-//catches uncaught exceptions
-process.on('uncaughtException', cleanUpResources);
-*/
-
+// catches uncaught exceptions
+process.on("uncaughtException", cleanUpResources);

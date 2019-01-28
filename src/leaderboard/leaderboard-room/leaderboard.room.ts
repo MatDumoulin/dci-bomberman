@@ -26,7 +26,9 @@ export class LeaderboardRoom extends Room<BombermanStats> {
                 // console.log(this.state);
                 this.subscribeToStats();
             })
-            .catch(err => console.log("Unable to fetch the initial state:", err));
+            .catch(err =>
+                console.log("Unable to fetch the initial state:", err)
+            );
     }
 
     // Checks if a new client is allowed to join. (default: `return true`)
@@ -81,10 +83,9 @@ export class LeaderboardRoom extends Room<BombermanStats> {
         this._storage.on("message", (key: string, value: string) => {
             const parsedValue = JSON.parse(value);
 
-            if(key === "stats:winner") {
+            if (key === "stats:winner") {
                 this.state.winner[parsedValue.player] = parsedValue.value;
-            }
-            else if(key === "stats:kills") {
+            } else if (key === "stats:kills") {
                 this.state.kills[parsedValue.player] = parsedValue.value;
             }
         });

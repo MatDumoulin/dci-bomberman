@@ -7,14 +7,13 @@ export interface MapDescriptor {
     height: number;
     width: number;
     /** The descriptor for each tile */
-    tiles: ObjectType[][],
-    spawnPositions: Point[]
+    tiles: ObjectType[][];
+    spawnPositions: Point[];
 }
 
-
 export interface GameMap {
-    tileWidth: number; /** In pixels */
-    tileHeight: number; /** In pixels */
+    tileWidth: number /** In pixels */;
+    tileHeight: number /** In pixels */;
     tilesOnFire: Point[];
 
     getWidth(): number;
@@ -47,7 +46,12 @@ export interface GameMap {
      * @param bottom The bottom of the selection box, in pixels.
      * @param right The right of the selection box, in pixels.
      */
-    getAllTilesInRange(top: number, left: number, bottom : number, right: number): Tile[];
+    getAllTilesInRange(
+        top: number,
+        left: number,
+        bottom: number,
+        right: number
+    ): Tile[];
 
     /** Initializes the map to match the given descriptor. */
     initFromMapDescriptor(descriptor: MapDescriptor): void;

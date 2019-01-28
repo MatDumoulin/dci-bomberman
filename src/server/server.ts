@@ -1,10 +1,9 @@
-import { createServer } from 'http';
+import { createServer } from "http";
 import { RedisPresence, Server } from "colyseus";
-import { config } from '../global.config';
-import { RoomHandler, RoomHandlerOptions } from './rooms';
-import { RedisAdapter } from '../core';
-
-const minimist = require('minimist');
+import { config } from "../global.config";
+import { RoomHandler, RoomHandlerOptions } from "./rooms";
+import { RedisAdapter } from "../core";
+import { LoadBalancerRoom } from "./load-balancer";
 
 const http = createServer();
 const gameServer = new Server({
@@ -16,26 +15,29 @@ const gameServer = new Server({
 });
 
 const roomOptions: RoomHandlerOptions = {
-    customPresence: new RedisAdapter(
-        config.redisHost,
-        config.redisPort
-    )
+    customPresence: new RedisAdapter(config.redisHost, config.redisPort)
 };
 
-gameServer.register("dci", RoomHandler, roomOptions).then(handler => handler
-    .on("create", (room) => console.log("Room created:", room.roomId))
-    .on("dispose", (room) => console.log("Room disposed:", room.roomId))
-    .on("join", (room, client) => console.log("User", client.id, "joined room", room.roomId))
-    .on("leave", (room, client) => console.log("User", client.id, "left room", room.roomId))
+gameServer.register("dci", RoomHandler, roomOptions).then(handler =>
+    handler
+        .on("create", room => console.log("Room created:", room.roomId))
+        .on("dispose", room => console.log("Room disposed:", room.roomId))
+        .on("join", (room, client) =>
+            console.log("User", client.id, "joined room", room.roomId)
+        )
+        .on("leave", (room, client) =>
+            console.log("User", client.id, "left room", room.roomId)
+        )
 );
 
+gameServer.register("server-info", LoadBalancerRoom);
+gameServer.matchMaker.create("server-info", {});
 
 const PORT = config.serverPort;
 
 http.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);
 });
-
 
 // Cleaning up all the resources used by the server.
 function cleanUpResources() {
@@ -44,7 +46,7 @@ function cleanUpResources() {
 
 gameServer.onShutdown(cleanUpResources);
 
-//do something when app is closing
+// do something when app is closing
 /*process.on('exit', cleanUpResources);
 
 //catches ctrl+c event
@@ -57,4 +59,3 @@ process.on('SIGUSR2', cleanUpResources);
 //catches uncaught exceptions
 process.on('uncaughtException', cleanUpResources);
 */
-

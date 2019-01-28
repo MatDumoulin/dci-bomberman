@@ -1,4 +1,11 @@
-import { Bomb, GameMap, Player, PlayerId, Upgrade, PlayerAction } from "../models";
+import {
+    Bomb,
+    GameMap,
+    Player,
+    PlayerId,
+    Upgrade,
+    PlayerAction
+} from "../models";
 import { Observable } from "rxjs";
 
 export interface GameState {
@@ -14,7 +21,6 @@ export interface GameState {
     winner: PlayerId;
     maxPlayerCount: number;
 
-
     startGame(): void;
 
     pauseGame(): void;
@@ -26,7 +32,7 @@ export interface GameState {
      * @param playerId The id of the player that wants to join the game.
      * @returns True if the player was able to join the game, false otherwise.
      */
-    joinGame(playerId: PlayerId): boolean
+    joinGame(playerId: PlayerId): boolean;
 
     /**
      * Removes the player from the game.
@@ -43,11 +49,10 @@ export interface GameState {
 
     onGameOver(): Observable<GameState>;
 
-    onStateChanged(): Observable<GameState>
+    onStateChanged(): Observable<GameState>;
 
     cleanUpRessources(): void;
 }
-
 
 export interface EmittedGameState {
     gameId: string;

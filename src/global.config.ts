@@ -4,5 +4,7 @@ export const config = {
     redisPort: 6379,
     serverHost: "localhost",
     serverPort: 3000,
-    leaderboardPort: 3500
+    leaderboardPort: 3500,
+    loadBalancerHost: "localhost",
+    loadBalancerPort: 2500,
 };

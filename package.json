@@ -1,53 +1,56 @@
 {
-  "name": "bomberman",
-  "version": "0.0.1",
-  "description": "An implementation of the bomberman game that comes with the game server, a client library (for ai development) and a web client (to watch games and access leaderboard).",
-  "main": "dist/server/server.js",
-  "scripts": {
-    "build": "rm -rf dist && tsc -w",
-    "start": "npm run server",
-    "server": "nodemon dist/server/server.js",
-    "bot": "node dist/bot/bot.js",
-    "leaderboard": "nodemon dist/leaderboard/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kingbaub3/dci-bomberman.git"
-  },
-  "keywords": [
-    "Bomberman",
-    "ai",
-    "game-server",
-    "nodejs"
-  ],
-  "author": "Mathieu Dumoulin",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kingbaub3/dci-bomberman/issues"
-  },
-  "homepage": "https://github.com/kingbaub3/dci-bomberman#readme",
-  "dependencies": {
-    "colyseus": "^0.9.19",
-    "colyseus.js": "^0.9.15",
-    "express": "^4.16.3",
-    "minimist": "^1.2.0",
-    "node-gameloop": "^0.1.4",
-    "redis": "^2.8.0",
-    "rxjs": "^6.3.1",
-    "socket.io": "^2.1.1",
-    "socket.io-client": "^2.1.1",
-    "ws": "^6.1.0"
-  },
-  "devDependencies": {
-    "@types/express": "^4.16.0",
-    "@types/node": "^10.5.8",
-    "@types/redis": "^2.8.7",
-    "@types/socket.io": "^1.4.37",
-    "@types/socket.io-client": "^1.4.32",
-    "nodemon": "^1.18.3",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.11.0",
-    "typescript": "^3.0.1"
-  }
+    "name": "bomberman",
+    "version": "0.0.1",
+    "description": "An implementation of the bomberman game that comes with the game server, a client library (for ai development) and a web client (to watch games and access leaderboard).",
+    "main": "dist/server/server.js",
+    "scripts": {
+        "build": "rm -rf dist && tsc -w",
+        "start": "npm run server",
+        "server": "nodemon dist/server/server.js",
+        "bot": "node dist/bot/bot.js",
+        "leaderboard": "nodemon dist/leaderboard/server.js",
+        "load-balancer": "nodemon dist/load-balancer/server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kingbaub3/dci-bomberman.git"
+    },
+    "keywords": [
+        "Bomberman",
+        "ai",
+        "game-server",
+        "nodejs"
+    ],
+    "author": "Mathieu Dumoulin",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kingbaub3/dci-bomberman/issues"
+    },
+    "homepage": "https://github.com/kingbaub3/dci-bomberman#readme",
+    "dependencies": {
+        "@types/node-fetch": "^2.1.4",
+        "colyseus": "^0.9.19",
+        "colyseus.js": "^0.9.15",
+        "express": "^4.16.3",
+        "minimist": "^1.2.0",
+        "node-fetch": "^2.3.0",
+        "node-gameloop": "^0.1.4",
+        "redis": "^2.8.0",
+        "rxjs": "^6.3.1",
+        "socket.io": "^2.1.1",
+        "socket.io-client": "^2.1.1",
+        "ws": "^6.1.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.16.0",
+        "@types/node": "^10.5.8",
+        "@types/redis": "^2.8.7",
+        "@types/socket.io": "^1.4.37",
+        "@types/socket.io-client": "^1.4.32",
+        "nodemon": "^1.18.3",
+        "ts-node": "^7.0.1",
+        "tslint": "^5.11.0",
+        "typescript": "^3.0.1"
+    }
 }

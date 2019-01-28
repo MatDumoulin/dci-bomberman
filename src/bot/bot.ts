@@ -1,10 +1,10 @@
-require("./colyseusjs.polyfill");
+require("../core/colyseusjs.polyfill");
 
 import { Client, DataChange } from "colyseus.js";
 import { PlayerAction } from "../server/models";
-import { config } from '../global.config';
-const minimist = require('minimist');
-const uuid = require('uuid/v4');
+import { config } from "../global.config";
+const minimist = require("minimist");
+const uuid = require("uuid/v4");
 
 console.log((global as any).WebSocket);
 // Parsing the given arguments in order to configure the server.
@@ -17,10 +17,10 @@ const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
 
 console.log(serverUrl);
 
-const client = new Client('ws:' + serverUrl);
+const client = new Client("ws:" + serverUrl);
 client.id = uuid();
 
-const room = client.join("dci", {isPlaying: true});
+const room = client.join("dci", { isPlaying: true });
 
 let interval: any;
 
@@ -33,14 +33,14 @@ client.onError.add((error: string) => {
 });
 
 room.listen("hasStarted", (change: DataChange) => {
-    if(change.value === true) {
+    if (change.value === true) {
         console.log("Game has started.");
         sendRandomMoves();
     }
 });
 
 room.listen("isOver", (change: DataChange) => {
-    if(change.value === true) {
+    if (change.value === true) {
         console.log("Game is over.");
         cleanUpResources();
     }
@@ -51,61 +51,56 @@ function sendRandomMoves() {
         const randomMove = Math.floor(Math.random() * 5);
         const actions = new PlayerAction();
 
-        if(randomMove === 0) {
+        if (randomMove === 0) {
             actions.move_down = true;
             console.log("Down");
-        }
-        else if(randomMove === 1) {
+        } else if (randomMove === 1) {
             actions.move_up = true;
             console.log("Up");
-        }
-        else if(randomMove === 2) {
+        } else if (randomMove === 2) {
             actions.move_left = true;
             console.log("Left");
-        }
-        else if(randomMove === 3) {
+        } else if (randomMove === 3) {
             actions.move_right = true;
             console.log("Right");
-        }
-        else {
+        } else {
             console.log("Stand still");
         }
 
         room.send({
             type: "PlayerAction",
-            payload: {playerId: client.id, actions}
+            payload: { playerId: client.id, actions }
         });
     }, 3000);
 }
 
 function cleanUpResources(ex?: any) {
-    if(ex) {
+    if (ex) {
         console.error(ex);
     }
 
     console.log("Cleaning up resources...");
 
-    if(interval) {
+    if (interval) {
         clearInterval(interval);
     }
 
-    if(room && room.hasJoined) {
+    if (room && room.hasJoined) {
         room.leave();
     }
 
     process.exit();
 }
 
-
-//do something when app is closing
+// do something when app is closing
 // process.on('exit', cleanUpResources);
 
-//catches ctrl+c event
-process.on('SIGINT', cleanUpResources);
+// catches ctrl+c event
+process.on("SIGINT", cleanUpResources);
 
 // catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', cleanUpResources);
-process.on('SIGUSR2', cleanUpResources);
+process.on("SIGUSR1", cleanUpResources);
+process.on("SIGUSR2", cleanUpResources);
 
-//catches uncaught exceptions
-process.on('uncaughtException', cleanUpResources);
+// catches uncaught exceptions
+process.on("uncaughtException", cleanUpResources);

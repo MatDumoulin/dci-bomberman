@@ -34,11 +34,12 @@ export class GameManager {
      * Stops and quits the game loop.
      */
     stopGame(): void {
-        if(this._gameloop && this._gameloop.active) {
+        if (this._gameloop && this._gameloop.active) {
             this._gameloop.clear();
-        }
-        else {
-            console.error("Cannot stop the game since none is running currently.");
+        } else {
+            console.error(
+                "Cannot stop the game since none is running currently."
+            );
         }
     }
 
@@ -46,7 +47,7 @@ export class GameManager {
      * Pauses the game loop and notifies the players
      */
     pauseGame(): void {
-        if(this._gameState.hasStarted && !this._gameState.paused) {
+        if (this._gameState.hasStarted && !this._gameState.paused) {
             this._gameState.pauseGame();
             this._gameloop.pause();
         }
@@ -56,20 +57,22 @@ export class GameManager {
      * Resumes the game loop and notifies the players
      */
     resumeGame(): void {
-        if(this._gameState.hasStarted && this._gameState.paused) {
+        if (this._gameState.hasStarted && this._gameState.paused) {
             this._gameState.resumeGame();
             this._gameloop.resume();
         }
     }
 
     fillGameWithBots(): void {
-        const numberOfPlayersInGame = Object.keys(this._gameState.players).length;
+        const numberOfPlayersInGame = Object.keys(this._gameState.players)
+            .length;
         // If the current game is not full
-        if(numberOfPlayersInGame < this._gameState.maxPlayerCount) {
+        if (numberOfPlayersInGame < this._gameState.maxPlayerCount) {
             // Fill the game with bots.
-            const missingPlayerCount = this._gameState.maxPlayerCount - numberOfPlayersInGame;
+            const missingPlayerCount =
+                this._gameState.maxPlayerCount - numberOfPlayersInGame;
 
-            for(let i = 0; i < missingPlayerCount; ++i) {
+            for (let i = 0; i < missingPlayerCount; ++i) {
                 ProcessManager.spawnBot();
             }
         }
@@ -84,7 +87,7 @@ export class GameManager {
 
     removePlayer(playerId: PlayerId): void {
         // If the game is over, leave the state as is.
-        if(this._gameState.isOver) {
+        if (this._gameState.isOver) {
             return;
         }
 
@@ -93,23 +96,28 @@ export class GameManager {
 
     updatePlayerActions(playerActionWrapper: PlayerActionWrapper): void {
         // Only update the actions of the player if the game has started, he's in the game and he is alive.
-        if(this._gameState.hasStarted &&
+        if (
+            this._gameState.hasStarted &&
             !this._gameState.isOver &&
-            this._gameState.players[playerActionWrapper.playerId] !== undefined &&
-            this._gameState.players[playerActionWrapper.playerId].isAlive) {
-
-            this._gameState.updateActionsOfPlayer(playerActionWrapper.playerId, playerActionWrapper.actions);
+            this._gameState.players[playerActionWrapper.playerId] !==
+                undefined &&
+            this._gameState.players[playerActionWrapper.playerId].isAlive
+        ) {
+            this._gameState.updateActionsOfPlayer(
+                playerActionWrapper.playerId,
+                playerActionWrapper.actions
+            );
         }
     }
 
     private gameTick() {
         // If there is a winner, stop the game.
-        if(this._gameState.winner !== null || this._gameState.isOver) {
+        if (this._gameState.winner !== null || this._gameState.isOver) {
             this.stopGame();
             return;
         }
         // Do nothing since the game is paused.
-        if(this._gameState.paused) {
+        if (this._gameState.paused) {
             return;
         }
 
