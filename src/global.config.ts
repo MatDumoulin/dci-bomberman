@@ -6,5 +6,5 @@ export const config = {
     serverPort: 3000,
     leaderboardPort: 3500,
     loadBalancerHost: "localhost",
-    loadBalancerPort: 2500,
+    loadBalancerPort: 2999
 };

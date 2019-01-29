@@ -1,19 +1,27 @@
 import { ServerList, ServerInfo } from "../models";
-import { ServerRoomHandler } from "./server-room-handler";
+import { ServerHandler } from "./server-handler";
 import { Subscription } from "rxjs";
 
 export class ServerManager extends ServerList {
-    private static _rooms: ServerRoomHandler[] = [];
+    private static _rooms: ServerHandler[] = [];
     private static _subscriptions: Subscription[] = [];
 
-    static add(server: ServerInfo) {
+    static add(server: ServerInfo): boolean {
+        if (this._rooms.some(r => r.url === server.url)) {
+            return false;
+        }
+
         this._rooms.push(
-            new ServerRoomHandler(
+            new ServerHandler(
                 server.url,
                 this.onRoomJoin.bind(this),
                 this.onRoomClose.bind(this)
             )
         );
+
+        super.set(server);
+
+        return true;
     }
 
     static remove(url: string) {
@@ -28,7 +36,7 @@ export class ServerManager extends ServerList {
         super.remove(url);
     }
 
-    private static onRoomJoin(room: ServerRoomHandler) {
+    private static onRoomJoin(room: ServerHandler) {
         if (room) {
             // Listening on room state change.
             this._subscriptions.push(
@@ -37,7 +45,7 @@ export class ServerManager extends ServerList {
         }
     }
 
-    private static onRoomClose(room: ServerRoomHandler) {
+    private static onRoomClose(room: ServerHandler) {
         if (room) {
             // removing the room from the list of rooms.
             this._rooms = this._rooms.filter(r => r.url !== room.url);

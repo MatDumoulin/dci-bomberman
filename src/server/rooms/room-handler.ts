@@ -9,7 +9,7 @@ import { RoomLogger } from "../core/loggers";
 import { GameState, GameStateImpl, EmittedGameState } from "../state";
 import { PlayerId } from "../models";
 import { RedisAdapter } from "../../core";
-import { ServerInfo } from "../load-balancer";
+import { ServerInfo, GameInfo } from "../load-balancer";
 
 export interface RoomHandlerOptions {
     customPresence?: RedisAdapter;
@@ -48,7 +48,7 @@ export class RoomHandler extends Room<EmittedGameState> {
         this.listenForStateChange();
         // We are using a custom presence since the Presence api given by Colyseus is too restricted.
         this._customPresence = options.customPresence;
-        ++ServerInfo.info.gameCount;
+        ServerInfo.info.addGame(new GameInfo(this.roomId));
     }
 
     // Checks if a new client is allowed to join.
@@ -135,14 +135,14 @@ export class RoomHandler extends Room<EmittedGameState> {
             }
 
             this._playerClientMapping.set(client.sessionId, id);
-            ++ServerInfo.info.playerCount;
+            ServerInfo.info.addPlayer(this.roomId);
 
             if (this._gameState.isGameFull() && !this._gameState.hasStarted) {
                 this._gameManager.startGame();
             }
         } else {
             // Else, for viewers, colyseus will handle state emission automatically.
-            ++ServerInfo.info.viewerCount;
+            ServerInfo.info.addViewer(this.roomId);
         }
     }
 
@@ -153,14 +153,14 @@ export class RoomHandler extends Room<EmittedGameState> {
             const id = this._playerClientMapping.get(client.sessionId);
             this._gameManager.removePlayer(id);
             this._playerClientMapping.delete(client.sessionId);
-            --ServerInfo.info.playerCount;
+            ServerInfo.info.removePlayer(this.roomId);
 
             if (this._gameState.hasStarted) {
                 this._logger.log("The player ", id, " has left the game.");
             }
         } else {
             // When the client is a viewer.
-            --ServerInfo.info.viewerCount;
+            ServerInfo.info.removeViewer(this.roomId);
         }
     }
 
@@ -177,7 +177,7 @@ export class RoomHandler extends Room<EmittedGameState> {
         this._logger.log("Cleaning up room...");
         this._gameState.cleanUpRessources();
         this.cli.cleanUpResources();
-        --ServerInfo.info.gameCount;
+        ServerInfo.info.removeGame(this.roomId);
     }
 
     private listenForStateChange() {
