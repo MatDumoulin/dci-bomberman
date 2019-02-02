@@ -18,9 +18,10 @@ const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
 console.log(serverUrl);
 
 const client = new Client("ws:" + serverUrl);
-client.id = uuid();
+const botId = uuid();
+client.id = botId;
 
-const room = client.join("dci", { isPlaying: true });
+const room = client.join("dci", { isPlaying: true, id: botId });
 
 let interval: any;
 
@@ -69,7 +70,7 @@ function sendRandomMoves() {
 
         room.send({
             type: "PlayerAction",
-            payload: { playerId: client.id, actions }
+            payload: { playerId: botId, actions }
         });
     }, 3000);
 }

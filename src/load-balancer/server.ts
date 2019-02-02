@@ -15,10 +15,11 @@ const app = express();
 // Parsing all request bodies into json.
 app.use(bodyParser.json());
 
-const PORT = config.loadBalancerPort;
+const LOAD_BALANCER_PORT = config.loadBalancerPort;
+const API_PORT = config.loadBalancerApiPort;
 
-app.listen(PORT, () => {
-    console.log(`Load balancer is listening on port ${PORT}`);
+app.listen(API_PORT, () => {
+    console.log(`Load balancer api is listening on port ${API_PORT}`);
 });
 
 app.get("/connect", ServerConnected);
@@ -50,12 +51,14 @@ gameServer.register("load-balancer", LoadBalancerRoom).then(handler =>
 
 gameServer.matchMaker.create("load-balancer", {});
 
+gameServer.listen(LOAD_BALANCER_PORT);
+
 // Cleaning up all the resources used by the server.
-async function cleanUpResources(error: any, s: string) {
+function cleanUpResources(error: any, s: string) {
     console.log(error);
     ServerManager.cleanUp();
     app.removeAllListeners();
-    await gameServer.gracefullyShutdown();
+    gameServer.gracefullyShutdown();
 }
 
 // do something when app is closing

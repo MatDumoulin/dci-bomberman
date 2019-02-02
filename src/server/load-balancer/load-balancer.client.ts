@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 
 export class LoadBalancerClient {
     private readonly LOAD_BALANCER_URL = `http://${config.loadBalancerHost}:${
-        config.loadBalancerPort
+        config.loadBalancerApiPort
     }`;
 
     connect(): Promise<any> {
