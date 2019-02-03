@@ -5,7 +5,7 @@ import { RoomAvailable } from "colyseus.js/lib/Room";
 
 export class ServerHandler {
     private _client: Client;
-    private _room: Room<ServerInfo>;
+    private _room: Room;
     readonly url: string;
     state: BehaviorSubject<ServerInfo>;
     onJoin: Function = () => {};
@@ -43,19 +43,21 @@ export class ServerHandler {
     }
 
     private listenOnRoomState(): void {
-        this._room.onStateChange.add(() => {
-            this.state.next(this.getServerInfo());
+        this._room.onStateChange.add((a: any) => {
+            console.log("Parameter a:", a);
+            console.log(`[${this.url}] Before: `, this.state.value);
+            const newInfo = this.getServerInfo(this._room.state);
+            this.state.next(newInfo);
 
             console.log(`[${this.url}] State has changed.`, this.state.value);
         });
     }
 
-    private getServerInfo(): ServerInfo {
-        const games = Object.keys(this._room.state.games).map(
-            id => this._room.state.games[id]
-        );
+    private getServerInfo(state: any): ServerInfo {
+        console.log("getServerInfo: ", state);
+        const games = Object.keys(state.games).map(id => state.games[id]);
 
-        const info: ServerInfo = { ...this._room.state, games };
+        const info: ServerInfo = { ...state, games };
         return new ServerInfo(this.url, info);
     }
 }

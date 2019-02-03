@@ -1,4 +1,4 @@
-import { createClient, RedisClient, ClientOpts } from 'redis';
+import { createClient, RedisClient, ClientOpts } from "redis";
 
 /**
  * This class moves redis calls to promises. That way, all calls made to redis are async.
@@ -18,35 +18,39 @@ export class RedisAdapter {
         // this.enableRealTimeStorage();
     }
 
-    hGetAll(key: string): Promise< {[key: string]: string} > {
-        return new Promise<{[key: string]: string}>( (resolve: Function, reject: Function) => {
-
-            this._redis.hgetall(key, (err: any, result: { [key: string]: string }) => {
-                if(err) {
-                    console.error(err);
-                    reject(err);
-                }
-                else {
-                    resolve(result);
-                }
-            });
-
-        });
+    hGetAll(key: string): Promise<{ [key: string]: string }> {
+        return new Promise<{ [key: string]: string }>(
+            (resolve: Function, reject: Function) => {
+                this._redis.hgetall(
+                    key,
+                    (err: any, result: { [key: string]: string }) => {
+                        if (err) {
+                            console.error(err);
+                            reject(err);
+                        } else {
+                            resolve(result);
+                        }
+                    }
+                );
+            }
+        );
     }
 
     hIncrBy(key: string, field: string, increment: number): Promise<number> {
         return new Promise<number>((resolve: Function, reject: Function) => {
-
-            this._redis.hincrby(key, field, increment, (err: any, result: number) => {
-                if(err) {
-                    console.error(err);
-                    reject(err);
+            this._redis.hincrby(
+                key,
+                field,
+                increment,
+                (err: any, result: number) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
                 }
-                else {
-                    resolve(result);
-                }
-            });
-
+            );
         });
     }
 
@@ -60,25 +64,28 @@ export class RedisAdapter {
 
     publish(channel: string, value: string): Promise<number> {
         return new Promise<number>((resolve, reject) => {
-            this._redis.publish(channel, value, (err: Error, numberOfReceiver: number) => {
-                if(err) {
-                    console.error(err);
-                    reject(err);
+            this._redis.publish(
+                channel,
+                value,
+                (err: Error, numberOfReceiver: number) => {
+                    if (err) {
+                        console.error(err);
+                        reject(err);
+                    } else {
+                        resolve(numberOfReceiver);
+                    }
                 }
-                else {
-                    resolve(numberOfReceiver);
-                }
-            });
+            );
         });
     }
 
     subscribe(key: string): void {
         this._redis.subscribe(key, (err: Error, result: string) => {
-            if(err) {
+            if (err) {
                 console.log("Error:", err);
             }
 
-            if(result) {
+            if (result) {
                 console.log("The following field was updated:", result);
             }
         });
@@ -88,7 +95,7 @@ export class RedisAdapter {
         this._redis.unsubscribe(key);
     }
 
-/*     private enableRealTimeStorage(): void {
+    /*     private enableRealTimeStorage(): void {
         this._redis.on("ready", () => {
             this._redis.config("SET", "notify-keyspace-events", "AKE");
         });

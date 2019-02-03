@@ -5,7 +5,7 @@ import express, { Response, Request } from "express";
 import bodyParser from "body-parser";
 
 import { config } from "../global.config";
-import { ServerConnected, ServerDisconnected } from "./routes";
+import { ServerConnected, ServerDisconnected, JoinGame } from "./routes";
 import { ServerManager } from "./managers";
 import { Server } from "colyseus";
 import { LoadBalancerRoom } from "./load-balancer.room";
@@ -24,6 +24,7 @@ app.listen(API_PORT, () => {
 
 app.get("/connect", ServerConnected);
 app.get("/disconnect", ServerDisconnected);
+app.get("/join-game", JoinGame);
 
 app.get("*", (req: Request, res: Response) => {
     res.status(200).send("Welcome to the load balancer!");

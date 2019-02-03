@@ -1,6 +1,6 @@
 import { Room, Client } from "colyseus";
 import { LoadBalancerClient } from "./load-balancer.client";
-import { ServerInfo } from "./server-info";
+import { ServerInfoForLoadBalancer } from "./server-info";
 
 export class LoadBalancerRoom extends Room {
     private _client = new LoadBalancerClient();
@@ -18,7 +18,7 @@ export class LoadBalancerRoom extends Room {
             .then(result => console.log("Connected:", result))
             .catch(err => console.log("Error:", err));
 
-        this.setState(ServerInfo.info);
+        this.setState(ServerInfoForLoadBalancer.info);
     }
 
     // Checks if a new client is allowed to join. (default: `return true`)

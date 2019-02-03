@@ -1,8 +1,9 @@
 require("../core/colyseusjs.polyfill");
 
-import { Client, DataChange } from "colyseus.js";
+import { Client, DataChange, Room } from "colyseus.js";
 import { PlayerAction } from "../server/models";
 import { config } from "../global.config";
+import { GameFinder } from "./game-finder";
 const minimist = require("minimist");
 const uuid = require("uuid/v4");
 
@@ -13,39 +14,43 @@ console.log((global as any).WebSocket);
  * --port: The port that this server will listen on.
  */
 const args = minimist(process.argv.slice(2)); // The first 2 arguments are useless.
-const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
-
-console.log(serverUrl);
-
-const client = new Client("ws:" + serverUrl);
-const botId = uuid();
-client.id = botId;
-
-const room = client.join("dci", { isPlaying: true, id: botId });
+// const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
 
 let interval: any;
+let room: Room;
+const botId = uuid();
 
-room.onJoin.add(() => {
-    console.log("Bot has joined room ", room.id);
-});
+GameFinder.next()
+    .then(serverUrl => {
+        console.log(serverUrl);
+        const client = new Client("ws:" + serverUrl);
+        client.id = botId;
 
-client.onError.add((error: string) => {
-    console.error("An error occurred: ", error);
-});
+        room = client.join("dci", { isPlaying: true, id: botId });
 
-room.listen("hasStarted", (change: DataChange) => {
-    if (change.value === true) {
-        console.log("Game has started.");
-        sendRandomMoves();
-    }
-});
+        room.onJoin.add(() => {
+            console.log("Bot has joined room ", room.id);
+        });
 
-room.listen("isOver", (change: DataChange) => {
-    if (change.value === true) {
-        console.log("Game is over.");
-        cleanUpResources();
-    }
-});
+        client.onError.add((error: string) => {
+            console.error("An error occurred: ", error);
+        });
+
+        room.listen("hasStarted", (change: DataChange) => {
+            if (change.value === true) {
+                console.log("Game has started.");
+                sendRandomMoves();
+            }
+        });
+
+        room.listen("isOver", (change: DataChange) => {
+            if (change.value === true) {
+                console.log("Game is over.");
+                cleanUpResources();
+            }
+        });
+    })
+    .catch(err => console.error(err));
 
 function sendRandomMoves() {
     interval = setInterval(() => {

@@ -21,6 +21,7 @@ export class ServerCli {
                 gameServer.gracefullyShutdown(true).then(() => {
                     this.cleanUpResources();
                     console.log("Clean up is done!");
+                    process.exit();
                 });
             }
         });

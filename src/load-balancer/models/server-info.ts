@@ -23,3 +23,10 @@ export class ServerInfo {
         }
     }
 }
+
+export interface ServerInfoFromServer {
+    playerCount: number;
+    gameCount: number;
+    viewerCount: number;
+    games: { [id: string]: GameInfo };
+}

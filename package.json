@@ -34,7 +34,6 @@
         "colyseus.js": "^0.9.15",
         "express": "^4.16.3",
         "minimist": "^1.2.0",
-        "node-cleanup": "^2.1.2",
         "node-fetch": "^2.3.0",
         "node-gameloop": "^0.1.4",
         "redis": "^2.8.0",

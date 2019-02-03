@@ -19,8 +19,6 @@ export class ServerManager extends ServerList {
             )
         );
 
-        super.set(server);
-
         return true;
     }
 
