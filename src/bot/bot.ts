@@ -7,7 +7,6 @@ import { GameFinder } from "./game-finder";
 const minimist = require("minimist");
 const uuid = require("uuid/v4");
 
-console.log((global as any).WebSocket);
 // Parsing the given arguments in order to configure the server.
 /**
  * Allowed aguments are:

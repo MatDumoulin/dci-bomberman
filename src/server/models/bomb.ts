@@ -1,7 +1,6 @@
 import { GameObject, ObjectType } from "./game-object";
 import { PlayerId } from "./player";
 
-
 export class Bomb extends GameObject {
     private static _idSequence = 0;
     /** Total time that it taked to this bomb before exploding, in ms */
@@ -19,11 +18,16 @@ export class Bomb extends GameObject {
      * The power of the explosion for this bomb, in map cell.
      * This power is the number of cells that will be affected by the bomb,
      * starting from the position of the bomb to the end of one side of the explosion.
-    */
-    bombPower: number
+     */
+    bombPower: number;
 
-
-    constructor(plantedBy: PlayerId, plantedAt: number, bombPower: number, row: number, col: number) {
+    constructor(
+        plantedBy: PlayerId,
+        plantedAt: number,
+        bombPower: number,
+        row: number,
+        col: number
+    ) {
         super(32, 32);
         this.plantedBy = plantedBy;
         this.plantedAt = plantedAt;

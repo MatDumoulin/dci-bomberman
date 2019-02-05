@@ -12,7 +12,7 @@ export class GameEngine {
         [-1, 0], // top
         [1, 0], // down
         [0, -1], // left
-        [0, 1], // right
+        [0, 1] // right
     ];
     /**
      * This functions tries to move the player to the given position.
@@ -31,9 +31,9 @@ export class GameEngine {
         const bottomLeftTile = state.gameMap.getTileFromPixels(bottom, left);
         const bottomRightTile = state.gameMap.getTileFromPixels(bottom, right);
 
-
         // If the destination is in the map and the player can walk on it, move the player
-        if(topLeftTile !== OUT_OF_BOUND && topLeftTile.info.type === ObjectType.Walkable &&
+        // prettier-ignore
+        if (topLeftTile !== OUT_OF_BOUND && topLeftTile.info.type === ObjectType.Walkable &&
             topRightTile !== OUT_OF_BOUND && topRightTile.info.type === ObjectType.Walkable &&
             bottomLeftTile !== OUT_OF_BOUND && bottomLeftTile.info.type === ObjectType.Walkable &&
             bottomRightTile !== OUT_OF_BOUND && bottomRightTile.info.type === ObjectType.Walkable) {

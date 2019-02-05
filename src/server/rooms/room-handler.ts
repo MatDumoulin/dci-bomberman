@@ -170,9 +170,14 @@ export class RoomHandler extends Room<EmittedGameState> {
 
     // When a client sends a message. This is where user actions come from.
     onMessage(client: Client, message: Message) {
-        if (message.type === "PlayerAction") {
-            const newActions = message.payload;
-            this._gameManager.updatePlayerActions(newActions);
+        if (
+            message &&
+            message.type === "PlayerAction" &&
+            message.payload &&
+            message.payload.actions
+        ) {
+            const actionWrapper = message.payload;
+            this._gameManager.updatePlayerActions(actionWrapper);
         }
     }
 
