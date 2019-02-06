@@ -30,6 +30,10 @@ The web server to view a game is on [a separate Git repository](https://github.c
 
 The leaderboard server needs to be started independently from the game server. To start the leaderboard server, run `npm run leaderboard` in a terminal. The leaderboard is on a separate server than the game servers to allow vertical scaling of the application and to lower the load on a single server. Due to my lazyness, it must run on the same server as the load balancer.
 
+## How to download redis on Windows
+
+Go to this [link](https://github.com/MicrosoftArchive/redis/releases)
+
 ## For more information
 
 This game server uses Colyseus, an awesome game server library. For more information on Colyseus, see [the official Colyseus Website](https://colyseus.io/).
