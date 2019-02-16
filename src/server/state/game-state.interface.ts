@@ -18,6 +18,7 @@ export interface GameState {
     isOver: boolean;
     hasStarted: boolean;
     time: number;
+    maxTime: number;
     winner: PlayerId;
     maxPlayerCount: number;
 
@@ -64,6 +65,7 @@ export interface EmittedGameState {
     isOver: boolean;
     hasStarted: boolean;
     time: number;
+    maxTime: number;
     winner: PlayerId;
     maxPlayerCount: number;
 }

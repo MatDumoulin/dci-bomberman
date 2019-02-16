@@ -56,12 +56,12 @@ export class SpeedUp extends Upgrade {
     }
 
     apply(player: Player): void {
-        const upgradeValue = 100;
+        const upgradeValue = 200;
 
-        if (player.timeBetweenMoves - upgradeValue > 250) {
+        if (player.timeBetweenMoves - upgradeValue > 100) {
             player.timeBetweenMoves -= upgradeValue;
         } else {
-            player.timeBetweenMoves = 250;
+            player.timeBetweenMoves = 100;
         }
     }
 }

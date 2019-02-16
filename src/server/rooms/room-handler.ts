@@ -192,7 +192,11 @@ export class RoomHandler extends Room<EmittedGameState> {
     private listenForStateChange() {
         // Listen for specific events from the state.
         this._gameState.onGameOver().subscribe(() => {
-            this.addWinnerToLeaderboard(this._gameState.winner);
+            // If its not a draw
+            if (this._gameState.winner) {
+                this.addWinnerToLeaderboard(this._gameState.winner);
+            }
+
             console.log("Game is over! Blocking all incoming actions.");
             // Wait for clients to handle end of game properly, then close the room.
             setTimeout(() => this.disconnect(), 2000);
@@ -220,6 +224,7 @@ export class RoomHandler extends Room<EmittedGameState> {
         target.isOver = gameState.isOver;
         target.hasStarted = gameState.hasStarted;
         target.time = gameState.time;
+        target.maxTime = gameState.maxTime;
         target.winner = gameState.winner;
         target.maxPlayerCount = gameState.maxPlayerCount;
     }

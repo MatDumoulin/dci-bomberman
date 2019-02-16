@@ -13,8 +13,8 @@ export class Player extends GameObject {
     maxBombCount = 1;
     bombs: Bomb[] = []; // There are no bombs from him on the field for the moment.
     isAlive = true;
-    /** The wait time between each move that the player makes. This is equivalent to its speed. */
-    timeBetweenMoves = 1000;
+    /** The wait time between each move that the player makes, in ms. This is equivalent to its speed. */
+    timeBetweenMoves = 600;
     /** The last time an action from the player has been made */
     lastMove: number = Number.MIN_SAFE_INTEGER;
     /** If the player can move or not. This is only to help players visualize if they can move. */

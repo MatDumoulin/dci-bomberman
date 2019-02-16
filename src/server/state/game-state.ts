@@ -32,6 +32,7 @@ export class GameStateImpl implements GameState {
     isOver: boolean;
     hasStarted: boolean;
     time: number;
+    maxTime: number;
     winner: PlayerId;
     maxPlayerCount: number;
 
@@ -45,6 +46,7 @@ export class GameStateImpl implements GameState {
         this.isOver = false;
         this.hasStarted = false;
         this.time = 0;
+        this.maxTime = 1000 * 60 * 1; // 5 minutes
         this.winner = null;
         this.maxPlayerCount = 4;
     }
@@ -120,6 +122,7 @@ export class GameStateImpl implements GameState {
 
     gameTick(currentTime: number): void {
         this.time = currentTime;
+        this.checkForDraw();
 
         // For each tile on fire, check if the explosion is over.
         let currentTile: Tile;
@@ -351,6 +354,15 @@ export class GameStateImpl implements GameState {
         this.isOver = true;
 
         this._gameOverObservable.next(this);
+    }
+
+    private checkForDraw() {
+        if (!this.isOver && this.maxTime <= this.time) {
+            this.winner = null;
+            this.isOver = true;
+
+            this._gameOverObservable.next(this);
+        }
     }
 
     /**
