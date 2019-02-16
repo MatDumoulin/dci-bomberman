@@ -14,6 +14,7 @@ export enum ObjectType {
 /** Any object that can be displayed on the map has these properties. */
 export class GameObject {
     type: ObjectType;
+    /** Coordinates on the map */
     coordinates: Point;
     width: number;
     height: number;
@@ -27,29 +28,29 @@ export class GameObject {
 export class WalkableTerrain extends GameObject {
     type = ObjectType.Walkable;
 
-    constructor(posInPixels: Point, width: number, height: number) {
+    constructor(pos: Point, width: number, height: number) {
         super(width, height);
 
-        this.coordinates = posInPixels;
+        this.coordinates = pos;
     }
 }
 
 export class Wall extends GameObject {
     type = ObjectType.Wall;
 
-    constructor(posInPixels: Point, width: number, height: number) {
+    constructor(pos: Point, width: number, height: number) {
         super(width, height);
 
-        this.coordinates = posInPixels;
+        this.coordinates = pos;
     }
 }
 
 export class BreakableItem extends GameObject {
     type = ObjectType.BreakableItem;
 
-    constructor(posInPixels: Point, width: number, height: number) {
+    constructor(pos: Point, width: number, height: number) {
         super(width, height);
 
-        this.coordinates = posInPixels;
+        this.coordinates = pos;
     }
 }

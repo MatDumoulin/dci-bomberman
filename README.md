@@ -33,3 +33,19 @@ The leaderboard server needs to be started independently from the game server. T
 ## For more information
 
 This game server uses Colyseus, an awesome game server library. For more information on Colyseus, see [the official Colyseus Website](https://colyseus.io/).
+
+## Information about the game
+
+Below are the game mechanics of the game:
+
+### Upgrades
+
+Drop rate: 20% chance of dropping when a box is destroyed.
+
+| Upgrade type | Effect                                                    |
+| ------------ | --------------------------------------------------------- |
+| Speed up     | -100 ms of waiting time before next move can be performed |
+| Explosion up | +1 explosion range in all directions                      |
+| Bomb up      | +1 bomb can be dropped at the same time                   |
+
+Note: Your speed cannot be lower 

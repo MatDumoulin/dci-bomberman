@@ -1,5 +1,6 @@
 import { GameObject, ObjectType } from "./game-object";
 import { PlayerId } from "./player";
+import { Point } from "./point";
 
 export class Bomb extends GameObject {
     private static _idSequence = 0;
@@ -11,8 +12,6 @@ export class Bomb extends GameObject {
     id: number;
     plantedBy: PlayerId;
     plantedAt: number;
-    row: number;
-    col: number;
 
     /**
      * The power of the explosion for this bomb, in map cell.
@@ -25,15 +24,13 @@ export class Bomb extends GameObject {
         plantedBy: PlayerId,
         plantedAt: number,
         bombPower: number,
-        row: number,
-        col: number
+        coordinates: Point
     ) {
         super(32, 32);
         this.plantedBy = plantedBy;
         this.plantedAt = plantedAt;
         this.id = ++Bomb._idSequence;
         this.bombPower = bombPower;
-        this.row = row;
-        this.col = col;
+        this.coordinates = coordinates;
     }
 }

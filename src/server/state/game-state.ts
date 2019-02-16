@@ -51,7 +51,6 @@ export class GameStateImpl implements GameState {
 
     startGame(): void {
         // Set the position of all players to their spawn.
-        // const players = setPlayersPositionToSpawn(state);
         this.hasStarted = true;
         this._stateChangedObservable.next(this);
     }
@@ -127,10 +126,8 @@ export class GameStateImpl implements GameState {
         for (let row = 0; row < this.gameMap.getHeight(); ++row) {
             for (let col = 0; col < this.gameMap.getWidth(); ++col) {
                 currentTile = this.gameMap.get(row, col);
-                if (
-                    currentTile.isOnFire &&
-                    currentTile.timeOfEndOfFire < this.time
-                ) {
+                // prettier-ignore
+                if (currentTile.isOnFire && currentTile.timeOfEndOfFire < this.time) {
                     currentTile.isOnFire = false;
                 }
             }
@@ -140,64 +137,45 @@ export class GameStateImpl implements GameState {
         // something that would change their state.
         const playerIds = Object.keys(this.players);
         const consumedCollectibles: Tile[] = []; // This is a slight optimization to remove the collectibles from the game map.
-        let tilesOfPlayer: Tile[];
+        let tileOfPlayer: Tile;
 
         for (const playerId of playerIds) {
             const player = this.players[playerId];
             // Only move the player if he's alive.
             if (player.isAlive) {
-                // Move the player.
-                this.updatePlayerPosition(player);
-                // Check for plant bomb
-                if (player.actions.plant_bomb) {
-                    this.plantBomb(playerId);
-                }
+                // Move the player and check for bomb plant.
+                this.handlePlayerActions(player, currentTime);
 
-                // We get all the tiles that the player is on currently.
-                tilesOfPlayer = this.gameMap.getAllTilesInRange(
+                // We get the tile that the player is on currently.
+                tileOfPlayer = this.gameMap.get(
                     player.coordinates.y,
-                    player.coordinates.x,
-                    player.coordinates.y + player.height,
-                    player.coordinates.x + player.width
+                    player.coordinates.x
                 );
 
-                // From this list, we search for player kill.
-                if (tilesOfPlayer.some(tile => tile.isOnFire)) {
+                // We check for player kill.
+                if (tileOfPlayer.isOnFire) {
                     player.isAlive = false;
                     this.checkForWinner();
                 }
                 // Check if the player walked on a collectible.
-                for (const tile of tilesOfPlayer) {
-                    if (tile.collectible !== null) {
-                        tile.collectible.apply(player);
-                        consumedCollectibles.push(tile);
-                    }
+                if (tileOfPlayer.collectible !== null) {
+                    tileOfPlayer.collectible.apply(player);
+                    consumedCollectibles.push(tileOfPlayer);
                 }
             }
         }
 
         // Remove the collectibles from the game map.
-        for (let row = 0; row < this.gameMap.getHeight(); ++row) {
-            for (let col = 0; col < this.gameMap.getWidth(); ++col) {
-                currentTile = this.gameMap.get(row, col);
-                if (
-                    consumedCollectibles.some(
-                        consumed =>
-                            consumed.col === currentTile.col &&
-                            consumed.row === currentTile.row
-                    )
-                ) {
-                    currentTile.collectible = null;
-                }
-            }
+        for (const consumedTile of consumedCollectibles) {
+            consumedTile.collectible = null;
         }
 
         this.collectibles = this.collectibles.filter(
             collectible =>
                 !consumedCollectibles.some(
                     consumed =>
-                        consumed.col === collectible.col &&
-                        consumed.row === collectible.row
+                        consumed.info.coordinates.x === collectible.col &&
+                        consumed.info.coordinates.y === collectible.row
                 )
         );
 
@@ -231,12 +209,10 @@ export class GameStateImpl implements GameState {
 
     private bombPlanted(playerId: PlayerId): void {
         const player = this.players[playerId];
-        // Use the center of the player to determine where the bomb should be planted.
-        const tileRow = this.gameMap.getRowFromPixels(
-            player.coordinates.y + player.height / 2
-        );
-        const tileCol = this.gameMap.getColFromPixels(
-            player.coordinates.x + player.width / 2
+        // Use the position of the player determine where the bomb should be planted.
+        const bombLocation = new Point(
+            player.coordinates.x,
+            player.coordinates.y
         );
 
         // Adding the bomb to the player.
@@ -244,8 +220,7 @@ export class GameStateImpl implements GameState {
             playerId,
             this.time,
             player.bombPower,
-            tileRow,
-            tileCol
+            bombLocation
         );
         player.bombs.push(bomb);
         // The player can send the drop bomb action for more than one game tick. This
@@ -253,8 +228,8 @@ export class GameStateImpl implements GameState {
         player.actions.plant_bomb = false;
 
         // Adding the bomb to the map.
-        const currentTileOfPlayer = this.gameMap.get(tileRow, tileCol);
-        currentTileOfPlayer.bombs.push(bomb);
+        const tileOfBomb = this.gameMap.get(bombLocation.y, bombLocation.x);
+        tileOfBomb.bombs.push(bomb);
 
         // Adding the bomb to the list of bombs
         this.bombs[bomb.id] = bomb;
@@ -330,20 +305,18 @@ export class GameStateImpl implements GameState {
         const playerIds = Object.keys(this.players);
         // Find the first spawn that is not occupied by a player.
         const spawnRef = spawns.find(spawn => {
-            const tileOfSpawn = this.gameMap.getTileFromPixels(
-                spawn.y,
-                spawn.x
-            );
+            const tileOfSpawn = this.gameMap.get(spawn.y, spawn.x);
 
             return !playerIds.some(id => {
-                const tileOfPlayer = this.gameMap.getTileFromPixels(
+                const tileOfPlayer = this.gameMap.get(
                     this.players[id].coordinates.y,
                     this.players[id].coordinates.x
                 );
 
                 return (
-                    tileOfPlayer.row === tileOfSpawn.row &&
-                    tileOfPlayer.col === tileOfSpawn.col
+                    // prettier-ignore
+                    tileOfPlayer.info.coordinates.x === tileOfSpawn.info.coordinates.x &&
+                    tileOfPlayer.info.coordinates.y === tileOfSpawn.info.coordinates.y
                 );
             });
         });
@@ -353,10 +326,7 @@ export class GameStateImpl implements GameState {
         if (spawnRef) {
             const spawnCopy = new Point(spawnRef.x, spawnRef.y);
 
-            player.coordinates = new Point(
-                spawnCopy.x + (this.gameMap.tileWidth - player.width) / 2,
-                spawnCopy.y + (this.gameMap.tileHeight - player.height) / 2
-            );
+            player.coordinates = new Point(spawnCopy.x, spawnCopy.y);
         }
     }
 
@@ -384,9 +354,35 @@ export class GameStateImpl implements GameState {
     }
 
     /**
-     * Updates the position of the player.
+     * Checks if the player can perform and action. If so,
+     * perform the action.
      */
-    private updatePlayerPosition(player: Player): void {
+    private handlePlayerActions(player: Player, currentTime: number): void {
+        // prettier-ignore
+        if (!player.canMove && player.lastMove + player.timeBetweenMoves <= currentTime) {
+            player.canMove = true;
+        }
+
+        if (player.canMove) {
+            const playerDidMove = this.updatePlayerPosition(player);
+
+            if (playerDidMove) {
+                player.canMove = false;
+                player.lastMove = currentTime;
+            }
+        }
+
+        // Check for plant bomb
+        if (player.actions.plant_bomb) {
+            this.plantBomb(player.playerId);
+        }
+    }
+
+    /**
+     * Updates the position of the player.
+     * @returns true if the player moved, false otherwise.
+     */
+    private updatePlayerPosition(player: Player): boolean {
         const move = { x: 0, y: 0 };
         // First, we convert the move to numeric values.
         if (player.actions.move_up) {
@@ -400,15 +396,15 @@ export class GameStateImpl implements GameState {
         }
         // If the player is not moving, do nothing.
         else {
-            return;
+            return false;
         }
 
         // Then, we compute the new position of the player (if no collision).
-        const left = player.coordinates.x + player.speed * move.x;
-        const top = player.coordinates.y + player.speed * move.y;
+        const col = player.coordinates.x + move.x;
+        const row = player.coordinates.y + move.y;
 
-        const desiredNewPosition = new Point(left, top);
-        GameEngine.movePlayerTo(this, player, desiredNewPosition);
+        const desiredNewPosition = new Point(col, row);
+        return GameEngine.movePlayerTo(this, player, desiredNewPosition);
     }
 
     private getExplosionImpactOnMap(
@@ -422,8 +418,8 @@ export class GameStateImpl implements GameState {
         // First up, we check get all the tiles exposed to the explosion.
         for (const direction of GameEngine.Directions) {
             for (let i = 1; i < bomb.bombPower; ++i) {
-                const probedRow = bomb.row + direction[0] * i;
-                const probedCol = bomb.col + direction[1] * i;
+                const probedRow = bomb.coordinates.y + direction[0] * i;
+                const probedCol = bomb.coordinates.x + direction[1] * i;
                 tile = gameMap.get(probedRow, probedCol);
 
                 // We set the tile on fire.
@@ -434,14 +430,12 @@ export class GameStateImpl implements GameState {
                 };
 
                 // If the explosion is blocked by a wall,
-                if (
-                    tile === OUT_OF_BOUND ||
-                    tile.info.type === ObjectType.Wall
-                ) {
+                // prettier-ignore
+                if (tile === OUT_OF_BOUND || tile.info.type === ObjectType.Wall) {
                     // Quit this nested loop since the explosion has been stopped.
                     break;
                 }
-                // If the tile is breakable, set it to walkable now and potentially generate upgrade.
+                // If the tile is breakable, set it to walkable now and potentially generate an upgrade.
                 else if (tile.info.type === ObjectType.BreakableItem) {
                     let upgrade: Upgrade = null;
 
@@ -480,7 +474,7 @@ export class GameStateImpl implements GameState {
         }
 
         // Then, we remove the bomb from the map.
-        tile = gameMap.get(bomb.row, bomb.col);
+        tile = gameMap.get(bomb.coordinates.y, bomb.coordinates.x);
         after = {
             isOnFire: true,
             timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION,
@@ -489,7 +483,12 @@ export class GameStateImpl implements GameState {
         };
 
         mapTransformation.push(
-            new ExplosionInformation(bomb.row, bomb.col, tile, after)
+            new ExplosionInformation(
+                bomb.coordinates.y,
+                bomb.coordinates.x,
+                tile,
+                after
+            )
         );
 
         return mapTransformation;
