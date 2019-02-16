@@ -1,54 +1,76 @@
-import { createServer } from 'http';
-import { RedisPresence, Server } from "colyseus";
-import { config } from '../global.config';
+require("../core/colyseusjs.polyfill");
 
-const http = createServer();
+import { createServer } from "http";
+import express, { Response, Request } from "express";
+import bodyParser from "body-parser";
+
+import { config } from "../global.config";
+import { ServerConnected, ServerDisconnected, JoinGame } from "./routes";
+import { ServerManager } from "./managers";
+import { Server } from "colyseus";
+import { LoadBalancerRoom } from "./load-balancer.room";
+
+const app = express();
+
+// Parsing all request bodies into json.
+app.use(bodyParser.json());
+
+const LOAD_BALANCER_PORT = config.loadBalancerPort;
+const API_PORT = config.loadBalancerApiPort;
+
+app.listen(API_PORT, () => {
+    console.log(`Load balancer api is listening on port ${API_PORT}`);
+});
+
+app.get("/connect", ServerConnected);
+app.get("/disconnect", ServerDisconnected);
+app.get("/join-game", JoinGame);
+
+app.get("*", (req: Request, res: Response) => {
+    res.status(200).send("Welcome to the load balancer!");
+});
+
 const gameServer = new Server({
-    server: http,
-    presence: new RedisPresence({
-        host: config.redisHost,
-        port: config.redisPort
-    })
+    server: createServer(app)
 });
 
-/* const leaderboardOptions: LeaderboardRoomOptions = {
-    storageHost: config.redisHost,
-    storagePort: config.redisPort
-};
-gameServer.register("leaderboard", LeaderboardRoom, leaderboardOptions).then(handler => handler
-    .on("create", (room) => console.log("Leaderboard room created:", room.roomId))
-    .on("dispose", (room) => console.log("Leaderboard room disposed:", room.roomId))
-    .on("join", (room, client) => console.log("User", client.id, "joined leaderboard", room.roomId))
-    .on("leave", (room, client) => console.log("User", client.id, "left leaderboard", room.roomId))
+gameServer.register("load-balancer", LoadBalancerRoom).then(handler =>
+    handler
+        .on("create", room =>
+            console.log("Load balancer room created:", room.roomId)
+        )
+        .on("dispose", room =>
+            console.log("Load balancer room disposed:", room.roomId)
+        )
+        .on("join", (room, client) =>
+            console.log("User", client.id, "joined Load balancer", room.roomId)
+        )
+        .on("leave", (room, client) =>
+            console.log("User", client.id, "left Load balancer", room.roomId)
+        )
 );
- */
 
-const PORT = config.leaderboardPort;
-http.listen(PORT, () => {
-    console.log(`Leaderboard is listening on port ${PORT}`);
-});
+gameServer.matchMaker.create("load-balancer", {});
 
-/* gameServer.matchMaker.create("leaderboard", leaderboardOptions); */
+gameServer.listen(LOAD_BALANCER_PORT);
 
 // Cleaning up all the resources used by the server.
-function cleanUpResources() {
-    console.log("Leaderboard is closed.");
-    http.close();
+function cleanUpResources(error: any, s: string) {
+    console.log(error);
+    ServerManager.cleanUp();
+    app.removeAllListeners();
+    gameServer.gracefullyShutdown();
 }
 
-gameServer.onShutdown(cleanUpResources);
+// do something when app is closing
+process.on("exit", e => cleanUpResources(e, "exit"));
 
-//do something when app is closing
-/*process.on('exit', cleanUpResources);
-
-//catches ctrl+c event
-process.on('SIGINT', cleanUpResources);
+// catches ctrl+c event
+process.on("SIGINT", e => cleanUpResources(e, "SIGINT"));
 
 // catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', cleanUpResources);
-process.on('SIGUSR2', cleanUpResources);
+process.on("SIGUSR1", e => cleanUpResources(e, "SIGUSR1"));
+process.on("SIGUSR2", e => cleanUpResources(e, "SIGUSR2"));
 
-//catches uncaught exceptions
-process.on('uncaughtException', cleanUpResources);
-*/
-
+// catches uncaught exceptions
+process.on("uncaughtException", e => cleanUpResources(e, "uncaughtException"));

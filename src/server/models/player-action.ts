@@ -12,5 +12,5 @@ export class PlayerAction {
 /** Used to describe the action of a given player for the socket communication */
 export interface PlayerActionWrapper {
     playerId: PlayerId;
-    actions: PlayerAction
+    actions: PlayerAction;
 }

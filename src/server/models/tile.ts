@@ -4,17 +4,13 @@ import { Upgrade } from "./upgrade";
 
 export class Tile {
     info: GameObject;
-    row: number;
-    col: number;
     bombs: Bomb[] = [];
     isOnFire = false;
     timeOfEndOfFire: number;
     collectible: Upgrade = null;
 
-    constructor(info: GameObject, row: number, col: number) {
+    constructor(info: GameObject) {
         this.info = info;
-        this.row = row;
-        this.col = col;
     }
 }
 

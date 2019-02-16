@@ -8,13 +8,12 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            //"program": "${workspaceFolder}\\dist\\server\\server.js",
+            "program": "${workspaceFolder}\\dist\\server\\server.js",
             //"program": "${workspaceFolder}\\dist\\bot\\bot.js",
-            "program": "${workspaceFolder}\\dist\\leaderboard\\server.js",
+            //"program": "${workspaceFolder}\\dist\\leaderboard\\server.js",
+            //"program": "${workspaceFolder}\\dist\\load-balancer\\server.js",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
-            ],
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
             "console": "integratedTerminal"
         }
     ]

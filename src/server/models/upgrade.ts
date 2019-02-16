@@ -10,8 +10,8 @@ export abstract class Upgrade extends GameObject {
 
     constructor(tile: Tile) {
         super(tile.info.width, tile.info.height);
-        this.col = tile.col;
-        this.row = tile.row;
+        this.col = tile.info.coordinates.x;
+        this.row = tile.info.coordinates.y;
         this.coordinates = tile.info.coordinates;
     }
 
@@ -56,6 +56,12 @@ export class SpeedUp extends Upgrade {
     }
 
     apply(player: Player): void {
-        ++player.speed;
+        const upgradeValue = 200;
+
+        if (player.timeBetweenMoves - upgradeValue > 100) {
+            player.timeBetweenMoves -= upgradeValue;
+        } else {
+            player.timeBetweenMoves = 100;
+        }
     }
 }

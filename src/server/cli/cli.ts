@@ -13,6 +13,7 @@ export class CliManager {
 
         console.log("Welcome to the dci-bomberman game.");
         console.log("Enter 'pause' to pause the game.");
+        console.log("Enter 'stop' to stop the game.");
         console.log(
             `Enter 'start' to start the game.`,
             `If there are 4 player, the game will automatically start.`,
@@ -31,6 +32,9 @@ export class CliManager {
                 // The game automatically starts when it is full.
                 // To manually start the game, we only have to fill in the game with bots.
                 gameManager.fillGameWithBots();
+            } else if (line === "stop") {
+                gameManager.stopGame();
+                this.cleanUpResources();
             }
         });
     }

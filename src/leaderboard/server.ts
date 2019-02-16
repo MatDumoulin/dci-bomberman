@@ -1,7 +1,7 @@
-import { createServer } from 'http';
+import { createServer } from "http";
 import { RedisPresence, Server } from "colyseus";
-import { config } from '../global.config';
-import { LeaderboardRoom, LeaderboardRoomOptions } from './leaderboard-room';
+import { config } from "../global.config";
+import { LeaderboardRoom, LeaderboardRoomOptions } from "./leaderboard-room";
 
 const http = createServer();
 const gameServer = new Server({
@@ -16,13 +16,28 @@ const leaderboardOptions: LeaderboardRoomOptions = {
     storageHost: config.redisHost,
     storagePort: config.redisPort
 };
-gameServer.register("leaderboard", LeaderboardRoom, leaderboardOptions).then(handler => handler
-    .on("create", (room) => console.log("Leaderboard room created:", room.roomId))
-    .on("dispose", (room) => console.log("Leaderboard room disposed:", room.roomId))
-    .on("join", (room, client) => console.log("User", client.id, "joined leaderboard", room.roomId))
-    .on("leave", (room, client) => console.log("User", client.id, "left leaderboard", room.roomId))
-);
-
+gameServer
+    .register("leaderboard", LeaderboardRoom, leaderboardOptions)
+    .then(handler =>
+        handler
+            .on("create", room =>
+                console.log("Leaderboard room created:", room.roomId)
+            )
+            .on("dispose", room =>
+                console.log("Leaderboard room disposed:", room.roomId)
+            )
+            .on("join", (room, client) =>
+                console.log(
+                    "User",
+                    client.id,
+                    "joined leaderboard",
+                    room.roomId
+                )
+            )
+            .on("leave", (room, client) =>
+                console.log("User", client.id, "left leaderboard", room.roomId)
+            )
+    );
 
 const PORT = config.leaderboardPort;
 http.listen(PORT, () => {
@@ -39,7 +54,7 @@ function cleanUpResources() {
 
 gameServer.onShutdown(cleanUpResources);
 
-//do something when app is closing
+// do something when app is closing
 /*process.on('exit', cleanUpResources);
 
 //catches ctrl+c event
@@ -52,4 +67,3 @@ process.on('SIGUSR2', cleanUpResources);
 //catches uncaught exceptions
 process.on('uncaughtException', cleanUpResources);
 */
-
