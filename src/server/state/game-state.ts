@@ -46,7 +46,7 @@ export class GameStateImpl implements GameState {
         this.isOver = false;
         this.hasStarted = false;
         this.time = 0;
-        this.maxTime = 1000 * 60 * 1; // 5 minutes
+        this.maxTime = 1000 * 60 * 5; // 5 minutes
         this.winner = null;
         this.maxPlayerCount = 4;
     }
@@ -151,8 +151,8 @@ export class GameStateImpl implements GameState {
 
                 // We get the tile that the player is on currently.
                 tileOfPlayer = this.gameMap.get(
-                    player.coordinates.y,
-                    player.coordinates.x
+                    player.coordinates.row,
+                    player.coordinates.col
                 );
 
                 // We check for player kill.
@@ -177,8 +177,9 @@ export class GameStateImpl implements GameState {
             collectible =>
                 !consumedCollectibles.some(
                     consumed =>
-                        consumed.info.coordinates.x === collectible.col &&
-                        consumed.info.coordinates.y === collectible.row
+                        // prettier-ignore
+                        consumed.info.coordinates.col === collectible.coordinates.col &&
+                        consumed.info.coordinates.row === collectible.coordinates.row
                 )
         );
 
@@ -214,8 +215,8 @@ export class GameStateImpl implements GameState {
         const player = this.players[playerId];
         // Use the position of the player determine where the bomb should be planted.
         const bombLocation = new Point(
-            player.coordinates.x,
-            player.coordinates.y
+            player.coordinates.col,
+            player.coordinates.row
         );
 
         // Adding the bomb to the player.
@@ -231,7 +232,7 @@ export class GameStateImpl implements GameState {
         player.actions.plant_bomb = false;
 
         // Adding the bomb to the map.
-        const tileOfBomb = this.gameMap.get(bombLocation.y, bombLocation.x);
+        const tileOfBomb = this.gameMap.get(bombLocation.row, bombLocation.col);
         tileOfBomb.bombs.push(bomb);
 
         // Adding the bomb to the list of bombs
@@ -265,8 +266,9 @@ export class GameStateImpl implements GameState {
             collectible =>
                 !removedCollectibles.some(
                     removed =>
-                        removed.col === collectible.col &&
-                        removed.row === collectible.row
+                        removed.coordinates.col ===
+                            collectible.coordinates.col &&
+                        removed.coordinates.row === collectible.coordinates.row
                 )
         );
 
@@ -308,18 +310,18 @@ export class GameStateImpl implements GameState {
         const playerIds = Object.keys(this.players);
         // Find the first spawn that is not occupied by a player.
         const spawnRef = spawns.find(spawn => {
-            const tileOfSpawn = this.gameMap.get(spawn.y, spawn.x);
+            const tileOfSpawn = this.gameMap.get(spawn.row, spawn.col);
 
             return !playerIds.some(id => {
                 const tileOfPlayer = this.gameMap.get(
-                    this.players[id].coordinates.y,
-                    this.players[id].coordinates.x
+                    this.players[id].coordinates.row,
+                    this.players[id].coordinates.col
                 );
 
                 return (
                     // prettier-ignore
-                    tileOfPlayer.info.coordinates.x === tileOfSpawn.info.coordinates.x &&
-                    tileOfPlayer.info.coordinates.y === tileOfSpawn.info.coordinates.y
+                    tileOfPlayer.info.coordinates.col === tileOfSpawn.info.coordinates.col &&
+                    tileOfPlayer.info.coordinates.row === tileOfSpawn.info.coordinates.row
                 );
             });
         });
@@ -327,9 +329,9 @@ export class GameStateImpl implements GameState {
         // If there is a spawn left, move the player to that spawn.
         // Otherwise, do not move the player.
         if (spawnRef) {
-            const spawnCopy = new Point(spawnRef.x, spawnRef.y);
+            const spawnCopy = new Point(spawnRef.col, spawnRef.row);
 
-            player.coordinates = new Point(spawnCopy.x, spawnCopy.y);
+            player.coordinates = new Point(spawnCopy.col, spawnCopy.row);
         }
     }
 
@@ -412,8 +414,8 @@ export class GameStateImpl implements GameState {
         }
 
         // Then, we compute the new position of the player (if no collision).
-        const col = player.coordinates.x + move.x;
-        const row = player.coordinates.y + move.y;
+        const col = player.coordinates.col + move.x;
+        const row = player.coordinates.row + move.y;
 
         const desiredNewPosition = new Point(col, row);
         return GameEngine.movePlayerTo(this, player, desiredNewPosition);
@@ -430,8 +432,8 @@ export class GameStateImpl implements GameState {
         // First up, we check get all the tiles exposed to the explosion.
         for (const direction of GameEngine.Directions) {
             for (let i = 1; i < bomb.bombPower; ++i) {
-                const probedRow = bomb.coordinates.y + direction[0] * i;
-                const probedCol = bomb.coordinates.x + direction[1] * i;
+                const probedRow = bomb.coordinates.row + direction[0] * i;
+                const probedCol = bomb.coordinates.col + direction[1] * i;
                 tile = gameMap.get(probedRow, probedCol);
 
                 // We set the tile on fire.
@@ -486,7 +488,7 @@ export class GameStateImpl implements GameState {
         }
 
         // Then, we remove the bomb from the map.
-        tile = gameMap.get(bomb.coordinates.y, bomb.coordinates.x);
+        tile = gameMap.get(bomb.coordinates.row, bomb.coordinates.col);
         after = {
             isOnFire: true,
             timeOfEndOfFire: currentTime + bomb.EXPLOSION_DURATION,
@@ -496,8 +498,8 @@ export class GameStateImpl implements GameState {
 
         mapTransformation.push(
             new ExplosionInformation(
-                bomb.coordinates.y,
-                bomb.coordinates.x,
+                bomb.coordinates.row,
+                bomb.coordinates.col,
                 tile,
                 after
             )

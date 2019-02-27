@@ -25,8 +25,7 @@ export class GameEngine {
         newPos: Point
     ): boolean {
         // Then, we compute the new position of the player (if no collision).
-        const col = newPos.x;
-        const row = newPos.y;
+        const { col, row } = newPos;
 
         // After that, we adjust the position to match the collisions.
         const tileOfPlayer = state.gameMap.get(row, col);

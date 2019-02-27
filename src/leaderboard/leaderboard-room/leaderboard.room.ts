@@ -68,10 +68,14 @@ export class LeaderboardRoom extends Room<BombermanStats> {
 
     private parseHashToNumber(hash: { [key: string]: string }): Stat {
         const parsedHash: Stat = {};
-        const keys = Object.keys(hash);
 
-        for (const key of keys) {
-            parsedHash[key] = parseInt(hash[key], 10);
+        // If state is empty in redux, the hash will be undefined. In that case, there is no stats to display.
+        if (hash) {
+            const keys = Object.keys(hash);
+
+            for (const key of keys) {
+                parsedHash[key] = parseInt(hash[key], 10);
+            }
         }
 
         return parsedHash;

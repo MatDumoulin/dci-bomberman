@@ -114,7 +114,7 @@ export class GameMapImpl implements GameMap {
 
         // Initializing the spawns
         const spawns = descriptor.spawnPositions.map(
-            spawnTile => new Point(spawnTile.x, spawnTile.y)
+            spawnTile => new Point(spawnTile.col, spawnTile.row)
         );
 
         this._spawnPositions = spawns;

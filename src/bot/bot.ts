@@ -2,7 +2,6 @@ require("../core/colyseusjs.polyfill");
 
 import { Client, DataChange, Room } from "colyseus.js";
 import { PlayerAction } from "../server/models";
-import { config } from "../global.config";
 import { GameFinder } from "./game-finder";
 const minimist = require("minimist");
 const uuid = require("uuid/v4");
@@ -13,7 +12,6 @@ const uuid = require("uuid/v4");
  * --port: The port that this server will listen on.
  */
 const args = minimist(process.argv.slice(2)); // The first 2 arguments are useless.
-// const serverUrl = args.server || `${config.serverHost}:${config.serverPort}`;
 
 let interval: any;
 let room: Room;
